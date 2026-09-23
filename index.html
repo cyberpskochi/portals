@@ -1,0 +1,2406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://accounts.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com; font-src https://fonts.gstatic.com data:; img-src 'self' data: blob: https://*.googleusercontent.com https://*.gstatic.com; connect-src 'self' https://www.googleapis.com https://accounts.google.com https://oauth2.googleapis.com https://cdnjs.cloudflare.com; frame-src https://accounts.google.com; worker-src 'self' blob: https://cdnjs.cloudflare.com; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#020912">
+<title>Cyber Portal Secure Suite</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M32 3l24 9v17c0 15-10.5 26-24 32C18.5 55 8 44 8 29V12z' fill='%23021018' stroke='%2300e5ff' stroke-width='4'/%3E%3Ccircle cx='32' cy='29' r='8' fill='none' stroke='%2300ff9d' stroke-width='4'/%3E%3C/svg%3E">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+:root{
+  --bg:#020912; --bg2:#06172a; --panel:rgba(8,26,46,.72); --panel2:rgba(10,34,60,.85);
+  --line:rgba(0,229,255,.18); --line2:rgba(0,229,255,.35);
+  --cyan:#00e5ff; --green:#00ff9d; --mag:#ff2e88; --amber:#ffb300; --blue:#2979ff; --violet:#b388ff; --orange:#ff6e40; --red:#ff4d5e;
+  --ink:#dff6ff; --ink2:#8fb3c9; --ink3:#5d7d93;
+  --good:#00e38c; --mid:#ffb300; --bad:#ff4d5e;
+  --radius:14px; --sidebar:236px;
+  --fd:'Orbitron','Segoe UI',Arial,sans-serif; --fb:'Rajdhani','Segoe UI',Arial,sans-serif; --fm:'Share Tech Mono',Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:radial-gradient(1200px 700px at 70% -10%,#0b2c4d 0%,transparent 60%),radial-gradient(900px 600px at -10% 110%,#12093a 0%,transparent 55%),var(--bg);color:var(--ink);font-family:var(--fb);font-size:15.5px;line-height:1.45;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font-family:inherit}
+.hidden{display:none!important}
+#netfx{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+.scan{position:fixed;inset:0;z-index:1;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,229,255,.025) 0 1px,transparent 1px 3px);mix-blend-mode:screen}
+.scan::after{content:"";position:absolute;left:0;right:0;height:140px;top:-140px;background:linear-gradient(180deg,transparent,rgba(0,229,255,.06),transparent);animation:sweep 9s linear infinite}
+@keyframes sweep{to{top:110%}}
+@media (prefers-reduced-motion:reduce){.scan::after{animation:none;display:none}}
+
+/* ---------- glass ---------- */
+.glass{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 10px 40px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.04);position:relative}
+.glass.corner::before,.glass.corner::after{content:"";position:absolute;width:18px;height:18px;border:2px solid var(--pc,var(--cyan));opacity:.8}
+.glass.corner::before{top:-1px;left:-1px;border-right:0;border-bottom:0;border-top-left-radius:var(--radius)}
+.glass.corner::after{bottom:-1px;right:-1px;border-left:0;border-top:0;border-bottom-right-radius:var(--radius)}
+.card{padding:18px 20px}
+.card h3{margin:0 0 12px;font-family:var(--fd);font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--pc,var(--cyan))}
+.muted{color:var(--ink2)} .tiny{font-size:12.5px} .mono{font-family:var(--fm)}
+
+/* ---------- buttons / inputs ---------- */
+.btn{--c:var(--cyan);display:inline-flex;align-items:center;gap:8px;border:1px solid var(--c);background:rgba(0,229,255,.06);color:var(--c);padding:9px 16px;border-radius:10px;font-weight:700;font-size:14.5px;letter-spacing:.04em;cursor:pointer;transition:all .18s;white-space:nowrap}
+.btn:hover:not(:disabled){background:var(--c);color:#021018;box-shadow:0 0 18px var(--c)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn.primary{background:linear-gradient(135deg,var(--c),#2979ff);color:#021018;border-color:transparent}
+.btn.primary:hover:not(:disabled){filter:brightness(1.12)}
+.btn.green{--c:var(--green)} .btn.mag{--c:var(--mag)} .btn.amber{--c:var(--amber)} .btn.red{--c:var(--red)} .btn.ghost{--c:var(--ink2)}
+.btn.sm{padding:5px 10px;font-size:13px;border-radius:8px}
+.btn svg{width:16px;height:16px}
+label.f{display:flex;flex-direction:column;gap:5px;font-size:12.5px;color:var(--ink2);letter-spacing:.05em;text-transform:uppercase}
+input[type=text],input[type=password],input[type=date],input[type=number],select,textarea{background:rgba(2,12,24,.8);border:1px solid var(--line2);color:var(--ink);padding:9px 11px;border-radius:9px;font-size:15px;outline:none;transition:border .15s,box-shadow .15s;min-width:0}
+input:focus,select:focus,textarea:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,229,255,.15)}
+input[type=date]{color-scheme:dark}
+select option{background:#06172a}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
+.grow{flex:1}
+.msg{min-height:20px;font-size:14px;margin-top:10px}
+.msg.err{color:var(--red)} .msg.ok{color:var(--green)} .msg.info{color:var(--cyan)}
+.chk{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14.5px}
+.chk input{accent-color:var(--cyan);width:17px;height:17px}
+
+/* ---------- LOCK ---------- */
+.lock{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px}
+.lock-card{width:min(460px,100%);padding:34px 32px 26px;text-align:center;animation:rise .7s ease-out}
+@keyframes rise{from{opacity:0;transform:translateY(24px) scale(.98)}to{opacity:1;transform:none}}
+.lock-logo{width:92px;height:92px;margin:0 auto 14px;position:relative}
+.lock-logo svg{width:100%;height:100%;filter:drop-shadow(0 0 14px rgba(0,229,255,.7))}
+.lock-logo .orbit{position:absolute;inset:-12px;border:1px dashed rgba(0,229,255,.45);border-radius:50%;animation:spin 14s linear infinite}
+.lock-logo .orbit::after{content:"";position:absolute;top:-4px;left:50%;width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 12px var(--green)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.brand{font-family:var(--fd);font-size:22px;letter-spacing:.14em;margin:6px 0 2px;color:#fff;text-shadow:0 0 18px rgba(0,229,255,.55)}
+.brand span{display:block;font-size:12.5px;letter-spacing:.5em;color:var(--cyan);margin-top:6px}
+.org{margin:4px 0 22px;color:var(--ink2);font-size:14px;letter-spacing:.06em}
+.lock-card form{display:flex;flex-direction:column;gap:12px;text-align:left}
+.lock-card input{width:100%;font-size:16px;padding:12px 14px;letter-spacing:.08em}
+.lock-card .btn{justify-content:center;padding:12px}
+.strength{height:6px;border-radius:4px;background:rgba(255,255,255,.08);overflow:hidden}
+.strength i{display:block;height:100%;width:0;transition:width .3s,background .3s}
+.warnbox{border:1px solid rgba(255,179,0,.4);background:rgba(255,179,0,.07);color:#ffd57a;border-radius:10px;padding:10px 12px;font-size:13.5px}
+.lock-foot{margin-top:18px;font-family:var(--fm);font-size:11.5px;color:var(--ink3);letter-spacing:.08em}
+.credit{position:fixed;bottom:12px;left:0;right:0;text-align:center;font-family:var(--fd);font-size:12px;letter-spacing:.3em;color:var(--cyan);text-shadow:0 0 10px rgba(0,229,255,.6);z-index:21;pointer-events:none}
+
+/* ---------- APP SHELL ---------- */
+#app{position:relative;z-index:2;min-height:100vh;display:grid;grid-template-columns:var(--sidebar) 1fr;grid-template-rows:64px 1fr auto}
+.topbar{grid-column:1/-1;display:flex;align-items:center;gap:16px;padding:0 20px;border-bottom:1px solid var(--line);background:rgba(2,10,20,.78);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);position:sticky;top:0;z-index:10}
+.tb-logo{width:38px;height:38px;flex:none}
+.tb-logo svg{width:100%;height:100%;filter:drop-shadow(0 0 8px rgba(0,229,255,.7))}
+.tb-title{font-family:var(--fd);letter-spacing:.14em;font-size:15px;line-height:1.1}
+.tb-title small{display:block;font-family:var(--fb);letter-spacing:.08em;font-size:12px;color:var(--ink2);margin-top:3px}
+.tb-sp{flex:1}
+.chip{display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:30px;border:1px solid var(--line2);font-size:12.5px;font-weight:700;letter-spacing:.06em;background:rgba(0,229,255,.05);white-space:nowrap}
+.chip .dot{width:8px;height:8px;border-radius:50%;background:var(--ink3)}
+.chip.on .dot{background:var(--green);box-shadow:0 0 10px var(--green);animation:blink 2s infinite}
+.chip.warn{border-color:rgba(255,179,0,.5);color:#ffd57a} .chip.warn .dot{background:var(--amber)}
+@keyframes blink{50%{opacity:.35}}
+.sidenav{grid-row:2/4;border-right:1px solid var(--line);background:rgba(2,10,20,.55);padding:16px 12px;display:flex;flex-direction:column;gap:4px;position:sticky;top:64px;height:calc(100vh - 64px);overflow-y:auto}
+.nav-h{font-family:var(--fd);font-size:10.5px;letter-spacing:.3em;color:var(--ink3);margin:14px 10px 6px}
+.nav-i{--pc:var(--cyan);display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;color:var(--ink2);cursor:pointer;border:1px solid transparent;background:none;text-align:left;font-size:15px;font-weight:600;letter-spacing:.03em;transition:all .15s;position:relative;width:100%}
+.nav-i svg{width:22px;height:22px;flex:none;color:var(--pc)}
+.nav-i:hover{background:rgba(0,229,255,.06);color:var(--ink)}
+.nav-i.active{color:#fff;border-color:color-mix(in srgb,var(--pc) 50%,transparent);background:linear-gradient(90deg,color-mix(in srgb,var(--pc) 18%,transparent),transparent)}
+.nav-i.active::before{content:"";position:absolute;left:-12px;top:8px;bottom:8px;width:3px;border-radius:3px;background:var(--pc);box-shadow:0 0 12px var(--pc)}
+.nav-i .cnt{margin-left:auto;font-family:var(--fm);font-size:11.5px;color:var(--ink3)}
+main{padding:22px 26px 30px;min-width:0}
+.credit-bar{grid-column:2;text-align:center;padding:14px;border-top:1px solid var(--line);font-family:var(--fd);letter-spacing:.3em;font-size:12.5px;color:var(--cyan);text-shadow:0 0 10px rgba(0,229,255,.55);background:rgba(2,10,20,.5)}
+.view{display:none;animation:fadein .35s ease}
+.view.active{display:block}
+@keyframes fadein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.vh{display:flex;align-items:center;gap:18px;margin-bottom:20px}
+.vh h2{margin:0;font-family:var(--fd);font-size:21px;letter-spacing:.1em}
+.vh p{margin:4px 0 0;color:var(--ink2)}
+
+/* ---------- hex icon ---------- */
+.hex{--pc:var(--cyan);width:64px;height:64px;flex:none;position:relative;display:grid;place-items:center}
+.hex::before{content:"";position:absolute;inset:0;clip-path:polygon(25% 3%,75% 3%,100% 50%,75% 97%,25% 97%,0 50%);background:linear-gradient(135deg,color-mix(in srgb,var(--pc) 45%,transparent),rgba(2,10,20,.8));}
+.hex::after{content:"";position:absolute;inset:-6px;border-radius:50%;border:1px dashed color-mix(in srgb,var(--pc) 55%,transparent);animation:spin 18s linear infinite}
+.hex svg{position:relative;width:32px;height:32px;color:#fff;filter:drop-shadow(0 0 6px var(--pc))}
+.hex.sm{width:44px;height:44px}.hex.sm svg{width:22px;height:22px}.hex.sm::after{display:none}
+
+/* ---------- dashboard ---------- */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px}
+.kpi{padding:16px 18px}
+.kpi .n{font-family:var(--fd);font-size:26px;color:#fff;text-shadow:0 0 14px var(--pc,var(--cyan))}
+.kpi .l{font-size:12.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink2);margin-top:4px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px}
+.tile{--pc:var(--cyan);padding:16px;cursor:pointer;transition:transform .2s,box-shadow .2s;overflow:hidden}
+.tile:hover{transform:translateY(-4px);box-shadow:0 14px 40px rgba(0,0,0,.45),0 0 0 1px var(--pc),0 0 30px color-mix(in srgb,var(--pc) 35%,transparent)}
+.tile-h{display:flex;align-items:center;gap:12px}
+.tile-h b{font-family:var(--fd);letter-spacing:.1em;font-size:16px}
+.tile-h small{display:block;color:var(--ink2);font-size:12.5px}
+.tile-b{display:flex;align-items:center;gap:14px;margin-top:14px}
+.tile-stats{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:6px 10px;font-size:13px}
+.tile-stats span{color:var(--ink2)} .tile-stats b{font-family:var(--fm);font-size:15px;color:#fff;display:block}
+.tile .when{margin-top:10px;font-family:var(--fm);font-size:12px;color:var(--ink3);display:flex;justify-content:space-between}
+.tile .pulse{position:absolute;right:-40px;top:-40px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--pc) 35%,transparent),transparent 70%);animation:breathe 4s ease-in-out infinite}
+@keyframes breathe{50%{transform:scale(1.25);opacity:.5}}
+.ring{width:78px;height:78px;flex:none;position:relative}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:8}
+.ring .bg{stroke:rgba(255,255,255,.07)}
+.ring .fg{stroke:var(--pc,var(--cyan));stroke-linecap:round;transition:stroke-dashoffset 1.2s cubic-bezier(.2,.8,.2,1);filter:drop-shadow(0 0 5px var(--pc,var(--cyan)))}
+.ring .v{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--fd);font-size:14px}
+.ring.big{width:120px;height:120px}.ring.big .v{font-size:20px}
+.cov{width:100%;border-collapse:collapse;font-size:13.5px}
+.cov td,.cov th{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left}
+.cov th{font-family:var(--fd);font-size:11px;letter-spacing:.15em;color:var(--ink2);font-weight:500}
+.dots{display:flex;gap:3px;flex-wrap:nowrap;overflow:hidden}
+.dots i{width:7px;height:16px;border-radius:2px;background:rgba(255,255,255,.06)}
+.dots i.on{background:var(--pc);box-shadow:0 0 6px var(--pc)}
+
+/* ---------- portal view ---------- */
+.p-hero{--pc:var(--cyan);display:flex;gap:20px;align-items:center;padding:20px 22px;margin-bottom:18px;overflow:hidden}
+.p-hero::after{content:"";position:absolute;inset:0;border-radius:var(--radius);pointer-events:none;background:linear-gradient(100deg,color-mix(in srgb,var(--pc) 16%,transparent),transparent 55%)}
+.p-hero .hex{width:78px;height:78px}.p-hero .hex svg{width:38px;height:38px}
+.p-hero h2{margin:0;font-family:var(--fd);letter-spacing:.12em;font-size:22px;color:#fff}
+.p-hero h2 em{font-style:normal;color:var(--pc);text-shadow:0 0 12px var(--pc)}
+.p-hero p{margin:5px 0 0;color:var(--ink2)}
+.p-hero .latest{margin-left:auto;text-align:right;font-family:var(--fm);font-size:12.5px;color:var(--ink2);position:relative;z-index:1}
+.p-hero .latest b{display:block;font-family:var(--fd);color:#fff;font-size:15px;margin-top:3px}
+.p-grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:16px;margin-bottom:18px}
+.drop{--pc:var(--cyan);border:1.5px dashed color-mix(in srgb,var(--pc) 55%,transparent);border-radius:12px;padding:26px 16px;text-align:center;cursor:pointer;position:relative;overflow:hidden;transition:all .2s;background:rgba(2,12,24,.5)}
+.drop:hover,.drop.drag{background:color-mix(in srgb,var(--pc) 10%,transparent);border-style:solid;box-shadow:inset 0 0 30px color-mix(in srgb,var(--pc) 20%,transparent)}
+.drop::before{content:"";position:absolute;left:0;right:0;height:2px;top:0;background:linear-gradient(90deg,transparent,var(--pc),transparent);animation:scanline 3s ease-in-out infinite;opacity:.7}
+@keyframes scanline{0%{top:0}50%{top:calc(100% - 2px)}100%{top:0}}
+.drop svg{width:40px;height:40px;color:var(--pc);filter:drop-shadow(0 0 8px var(--pc))}
+.drop b{display:block;font-size:16px;margin-top:6px;color:#fff}
+.drop span{font-size:13px;color:var(--ink2)}
+.drop input{display:none}
+.files{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.file{display:flex;align-items:center;gap:10px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;font-size:13.5px;background:rgba(0,229,255,.03)}
+.file b{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.file .x{background:none;border:0;color:var(--red);cursor:pointer;font-size:16px}
+.opts{margin-top:14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.opts .full{grid-column:1/-1}
+.hist{display:flex;flex-wrap:wrap;gap:8px;max-height:240px;overflow:auto}
+.hchip{--pc:var(--cyan);display:inline-flex;align-items:center;gap:8px;padding:6px 6px 6px 12px;border:1px solid color-mix(in srgb,var(--pc) 45%,transparent);border-radius:9px;font-family:var(--fm);font-size:13px;cursor:pointer;background:rgba(0,0,0,.2);transition:all .15s}
+.hchip:hover,.hchip.active{background:color-mix(in srgb,var(--pc) 18%,transparent);box-shadow:0 0 12px color-mix(in srgb,var(--pc) 40%,transparent)}
+.hchip small{color:var(--ink2)}
+.hchip button{background:none;border:0;color:var(--ink3);cursor:pointer;font-size:14px;padding:0 4px}
+.hchip button:hover{color:var(--red)}
+.res-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 16px;margin-bottom:16px}
+.res-bar .t{font-family:var(--fd);letter-spacing:.1em;font-size:13px;color:var(--pc,var(--cyan))}
+.res-bar .sp{flex:1}
+.sec{margin-bottom:22px}
+.sec-t{display:flex;align-items:center;gap:10px;margin:0 0 12px;font-family:var(--fd);font-size:14.5px;letter-spacing:.12em;color:#fff}
+.sec-t::before{content:"";width:10px;height:10px;transform:rotate(45deg);background:var(--pc,var(--cyan));box-shadow:0 0 10px var(--pc,var(--cyan))}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:14px;align-items:stretch}
+.stat{padding:14px 16px;border-left:3px solid var(--sc,var(--pc,var(--cyan)))}
+.stat .n{font-family:var(--fd);font-size:22px;color:#fff}
+.stat .l{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);margin-top:3px}
+.stat.ringc{display:flex;align-items:center;gap:12px;border-left:0}
+
+/* ---------- tables ---------- */
+.tw{overflow:auto;border:1px solid var(--line);border-radius:12px;max-height:620px;background:rgba(2,10,20,.55)}
+table.dt{width:100%;border-collapse:collapse;font-size:14px;min-width:640px}
+table.dt th{position:sticky;top:0;z-index:1;background:#07203a;color:var(--pc,var(--cyan));font-family:var(--fd);font-weight:500;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;padding:11px 10px;text-align:right;border-bottom:1px solid var(--line2);cursor:pointer;white-space:nowrap;user-select:none}
+table.dt th:first-child,table.dt th.l{text-align:left}
+table.dt th:hover{color:#fff}
+table.dt td{padding:8px 10px;border-bottom:1px solid rgba(0,229,255,.07);text-align:right;font-family:var(--fm);font-size:14px;white-space:nowrap}
+table.dt td.l{text-align:left;font-family:var(--fb);font-weight:600;font-size:15px;white-space:normal;color:#fff}
+table.dt tbody tr{transition:background .12s}
+table.dt tbody tr:hover{background:rgba(0,229,255,.06)}
+table.dt tfoot td{background:rgba(0,229,255,.1);font-weight:700;color:#fff;border-top:1px solid var(--line2);position:sticky;bottom:0}
+.pbar{display:flex;align-items:center;gap:8px;justify-content:flex-end}
+.pbar i{display:block;width:70px;height:6px;border-radius:4px;background:rgba(255,255,255,.08);overflow:hidden;position:relative}
+.pbar i::after{content:"";position:absolute;inset:0;width:var(--w);background:var(--bc);box-shadow:0 0 8px var(--bc)}
+.g{color:var(--good)} .m{color:var(--mid)} .b{color:var(--bad)}
+.up{color:var(--green)} .down{color:var(--red)}
+
+/* ---------- work done ---------- */
+.wd-ctrl{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:16px;margin-bottom:18px}
+.presets{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.plist{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.avail{font-family:var(--fm);font-size:12.5px;color:var(--ink2);margin-top:10px;max-height:70px;overflow:auto}
+.avail span{display:inline-block;margin:2px 4px 2px 0;padding:1px 7px;border:1px solid var(--line);border-radius:5px}
+.report{padding:22px 24px}
+.rep-h{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;border-bottom:1px solid var(--line2);padding-bottom:14px;margin-bottom:18px}
+.rep-h h2{margin:0;font-family:var(--fd);letter-spacing:.12em;font-size:19px;color:#fff}
+.rep-h p{margin:4px 0 0;color:var(--ink2)}
+.gcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;margin-bottom:18px}
+.gcard{--pc:var(--cyan);padding:14px 16px;border-top:3px solid var(--pc)}
+.gcard h4{margin:0 0 10px;font-family:var(--fd);font-size:13px;letter-spacing:.1em;color:var(--pc);display:flex;justify-content:space-between;gap:6px}
+.gcard h4 small{color:var(--ink3);font-family:var(--fm);letter-spacing:0}
+.gcard .gg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.gcard .gg div{background:rgba(0,0,0,.2);border-radius:8px;padding:8px 10px}
+.gcard .gg b{display:block;font-family:var(--fd);font-size:19px;color:#fff}
+.gcard .gg span{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2)}
+.gcard .ft{margin-top:8px;font-size:12.5px;color:var(--ink2);font-family:var(--fm)}
+.notes{font-size:13.5px;color:var(--ink2);border-left:3px solid var(--amber);padding:8px 12px;background:rgba(255,179,0,.05);border-radius:0 8px 8px 0;margin-top:14px}
+.notes li{margin:3px 0}
+canvas.chart{width:100%;height:280px;display:block}
+
+/* ---------- security ---------- */
+.sgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px}
+.blist{display:flex;flex-direction:column;gap:6px;max-height:300px;overflow:auto;margin-top:10px}
+.bitem{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-family:var(--fm);font-size:13px}
+.bitem span{flex:1}
+.audit{font-family:var(--fm);font-size:12.5px;max-height:320px;overflow:auto;color:var(--ink2)}
+.audit div{padding:4px 0;border-bottom:1px dashed rgba(0,229,255,.08)}
+.audit b{color:var(--cyan);font-weight:400}
+.steps{margin:0;padding-left:20px;color:var(--ink2);font-size:14px}
+.steps li{margin:4px 0}
+code{font-family:var(--fm);background:rgba(0,229,255,.08);padding:1px 6px;border-radius:5px;color:var(--cyan)}
+
+/* ---------- modal / toast ---------- */
+.modal{position:fixed;inset:0;z-index:50;background:rgba(0,4,10,.72);display:flex;align-items:center;justify-content:center;padding:18px;backdrop-filter:blur(4px)}
+.modal .box{width:min(480px,100%);padding:22px 24px;animation:rise .25s ease-out}
+.modal h3{margin:0 0 10px;font-family:var(--fd);letter-spacing:.1em;font-size:15px;color:var(--cyan)}
+.modal .body{display:flex;flex-direction:column;gap:12px;color:var(--ink2)}
+.modal .foot{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
+#toasts{position:fixed;right:18px;bottom:18px;z-index:60;display:flex;flex-direction:column;gap:8px;max-width:min(380px,90vw)}
+.toast{padding:11px 14px;border-radius:10px;background:var(--panel2);border:1px solid var(--line2);border-left:4px solid var(--cyan);font-size:14px;animation:rise .25s ease-out;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+.toast.err{border-left-color:var(--red)} .toast.ok{border-left-color:var(--green)} .toast.warn{border-left-color:var(--amber)}
+.busy{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;background:rgba(0,4,10,.55)}
+.busy .sp{width:62px;height:62px;border-radius:50%;border:3px solid rgba(0,229,255,.15);border-top-color:var(--cyan);animation:spin .8s linear infinite;box-shadow:0 0 30px rgba(0,229,255,.3)}
+.busy p{position:absolute;margin-top:110px;font-family:var(--fd);letter-spacing:.2em;font-size:12px;color:var(--cyan)}
+
+/* ---------- responsive ---------- */
+@media (max-width:980px){
+  #app{grid-template-columns:1fr;grid-template-rows:auto auto 1fr auto}
+  .topbar{flex-wrap:wrap;padding:10px 14px;gap:10px}
+  .tb-title small{display:none}
+  .sidenav{grid-row:auto;position:sticky;top:0;height:auto;flex-direction:row;overflow-x:auto;padding:8px 10px;border-right:0;border-bottom:1px solid var(--line);z-index:9;background:rgba(2,10,20,.92)}
+  .nav-h{display:none}
+  .nav-i{width:auto;flex:none;padding:8px 12px;font-size:14px}
+  .nav-i .cnt{display:none}
+  .nav-i.active::before{display:none}
+  main{padding:16px}
+  .credit-bar{grid-column:1}
+  .p-grid,.wd-ctrl{grid-template-columns:1fr}
+  .p-hero{flex-wrap:wrap}.p-hero .latest{margin-left:0;text-align:left}
+}
+@media (max-width:560px){ .chip.hide-s{display:none} .p-hero .hex{width:60px;height:60px} .p-hero h2{font-size:18px} }
+
+/* ---------- MRM report ---------- */
+.mrm-card{position:relative;padding-right:44px}
+.mrm-card .ia,.kps .ia{position:absolute;top:8px;right:8px;display:flex;gap:4px;opacity:.55;transition:opacity .15s}
+.mrm-card:hover .ia,.kps li:hover .ia{opacity:1}
+.ia button{background:rgba(0,0,0,.35);border:1px solid var(--line2);color:var(--ink2);border-radius:6px;width:24px;height:24px;cursor:pointer;font-size:12px;line-height:1}
+.ia button:hover{color:#fff;border-color:var(--cyan)}
+.kps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.kps li{position:relative;display:flex;gap:12px;align-items:flex-start;padding:11px 70px 11px 14px;border-radius:10px;border:1px solid var(--line);border-left:4px solid var(--cyan);background:rgba(0,229,255,.04);font-size:14.5px;line-height:1.5}
+.kps li.kp-worst{border-left-color:var(--red);background:rgba(255,77,94,.06)}
+.kps li.kp-best{border-left-color:var(--green);background:rgba(0,255,157,.05)}
+.kps li b{color:#fff}
+.kps .ic{font-size:18px;line-height:1.3}
+textarea{width:100%;resize:vertical}
+</style>
+</head>
+<body>
+<canvas id="netfx" aria-hidden="true"></canvas>
+<div class="scan" aria-hidden="true"></div>
+
+<!-- ================= LOCK SCREEN ================= -->
+<div id="lock" class="lock">
+  <div class="lock-card glass corner">
+    <div class="lock-logo"><div class="orbit"></div><svg viewBox="0 0 64 64" id="logoSvg"></svg></div>
+    <h1 class="brand">CYBER PORTAL<span>SECURE SUITE</span></h1>
+    <p class="org">Cyber Crime Police Station · Kochi City</p>
+
+    <form id="setupForm" class="hidden" autocomplete="off">
+      <div class="warnbox"><b>First-time setup.</b> Create the master passphrase that encrypts every record on this device and every backup on Google Drive. It is never stored anywhere — if it is lost, the data cannot be recovered.</div>
+      <input type="password" id="setPass1" placeholder="New master passphrase (min 10 chars)" autocomplete="new-password" required>
+      <div class="strength"><i id="strengthBar"></i></div>
+      <div class="tiny muted" id="strengthTxt">Use 10+ characters with upper/lower case, numbers and symbols.</div>
+      <input type="password" id="setPass2" placeholder="Confirm passphrase" autocomplete="new-password" required>
+      <button class="btn primary" type="submit">INITIALISE ENCRYPTED VAULT</button>
+      <div class="msg" id="setupMsg"></div>
+    </form>
+
+    <form id="loginForm" class="hidden" autocomplete="off">
+      <input type="password" id="loginPass" placeholder="Master passphrase" autocomplete="current-password" required>
+      <button class="btn primary" type="submit" id="loginBtn">UNLOCK VAULT</button>
+      <div class="msg" id="loginMsg"></div>
+    </form>
+
+    <div class="msg err hidden" id="envMsg"></div>
+    <div class="lock-foot">AES-256-GCM · PBKDF2-SHA256 600K · ZERO-KNOWLEDGE BACKUP</div>
+  </div>
+  <div class="credit">© ARUN R</div>
+</div>
+
+<!-- ================= APPLICATION ================= -->
+<div id="app" class="hidden">
+  <header class="topbar">
+    <div class="tb-logo"><svg viewBox="0 0 64 64" id="logoSvg2"></svg></div>
+    <div class="tb-title">CYBER PORTAL SECURE SUITE<small>Cyber Crime Police Station · Kochi City</small></div>
+    <div class="tb-sp"></div>
+    <span class="chip on" title="All data on this device is encrypted"><span class="dot"></span>AES-256 VAULT</span>
+    <span class="chip hide-s" id="driveChip" title="Google Drive backup status"><span class="dot"></span>DRIVE: OFF</span>
+    <span class="chip hide-s mono" id="idleChip" title="Auto-lock countdown">⏱ --:--</span>
+    <button class="btn sm red" id="lockBtn" title="Lock now">🔒 LOCK</button>
+  </header>
+
+  <nav class="sidenav" id="nav" aria-label="Sections"></nav>
+
+  <main id="main">
+    <!-- DASHBOARD -->
+    <section class="view" id="view-dash">
+      <div class="vh">
+        <div class="hex" style="--pc:var(--cyan)"><svg viewBox="0 0 24 24" data-ic="grid"></svg></div>
+        <div><h2>COMMAND DASHBOARD</h2><p>Latest encrypted snapshot of every portal. Click a tile to open that portal.</p></div>
+      </div>
+      <div class="kpis" id="dashKpis"></div>
+      <div class="tiles" id="dashTiles"></div>
+      <div class="glass card corner" style="margin-top:18px">
+        <h3>Data coverage (saved snapshots)</h3>
+        <div class="tw" style="max-height:none"><table class="cov" id="covTable"></table></div>
+        <p class="tiny muted" style="margin:10px 0 0">Each bar is one day in the last 60 days; a lit bar means a snapshot is saved for that day. Work Done reports can be generated between any two saved dates.</p>
+      </div>
+    </section>
+
+    <!-- PORTAL VIEWS are generated by script -->
+    <div id="portalViews"></div>
+
+    <!-- WORK DONE -->
+    <section class="view" id="view-work">
+      <div class="vh">
+        <div class="hex" style="--pc:var(--green)"><svg viewBox="0 0 24 24" data-ic="chart"></svg></div>
+        <div><h2>WORK DONE ANALYSER</h2><p>Compare any two saved dates. Received = increase in total requests; Closed = increase in closed/completed. Sahayog work done = increase in requests.</p></div>
+      </div>
+      <div class="wd-ctrl">
+        <div class="glass card corner" style="--pc:var(--green)">
+          <h3>Reporting period</h3>
+          <div class="row">
+            <label class="f grow">From (baseline)<input type="date" id="wdFrom"></label>
+            <label class="f grow">To<input type="date" id="wdTo"></label>
+          </div>
+          <div class="presets">
+            <button class="btn sm ghost" data-preset="prev">Last two snapshots</button>
+            <button class="btn sm ghost" data-preset="7">Last 7 days</button>
+            <button class="btn sm ghost" data-preset="30">Last 30 days</button>
+            <button class="btn sm ghost" data-preset="month">This month</button>
+            <button class="btn sm ghost" data-preset="all">All available</button>
+          </div>
+          <div class="avail" id="wdAvail"></div>
+        </div>
+        <div class="glass card corner" style="--pc:var(--green)">
+          <h3>Portals</h3>
+          <div class="plist" id="wdPortals"></div>
+          <div class="row" style="margin-top:16px">
+            <button class="btn primary green" id="wdGlance" style="--c:var(--green)">⚡ AT A GLANCE</button>
+            <button class="btn green" id="wdDetail">☰ DETAILED REPORT</button>
+          </div>
+          <div class="msg" id="wdMsg"></div>
+        </div>
+      </div>
+      <div id="wdOut" class="hidden">
+        <div class="glass res-bar" style="--pc:var(--green)">
+          <span class="t" id="wdOutTitle">REPORT</span><span class="sp"></span>
+          <button class="btn sm green" id="wdPdf">⬇ PDF</button>
+          <button class="btn sm green" id="wdXlsx">⬇ EXCEL</button>
+        </div>
+        <div class="glass report corner" style="--pc:var(--green)" id="wdReport"></div>
+      </div>
+    </section>
+
+    <!-- BACKUP & SECURITY -->
+    <section class="view" id="view-sec">
+      <div class="vh">
+        <div class="hex" style="--pc:var(--mag)"><svg viewBox="0 0 24 24" data-ic="lock"></svg></div>
+        <div><h2>BACKUP &amp; SECURITY</h2><p>Encrypted Google Drive backup, local encrypted backup file, passphrase and audit trail.</p></div>
+      </div>
+      <div class="sgrid">
+        <div class="glass card corner" style="--pc:var(--mag)">
+          <h3>Google Drive backup server</h3>
+          <label class="f">OAuth Client ID (Web application)<input type="text" id="gClientId" placeholder="xxxxxxxx.apps.googleusercontent.com" spellcheck="false"></label>
+          <div class="row" style="margin-top:10px">
+            <button class="btn sm mag" id="gSaveId">Save ID</button>
+            <button class="btn sm mag" id="gConnect">Connect Google Drive</button>
+            <button class="btn sm primary" id="gBackup" style="--c:var(--mag)">⬆ Backup now</button>
+          </div>
+          <div class="row" style="margin-top:12px">
+            <label class="chk"><input type="checkbox" id="gAuto"> Auto-backup after every saved snapshot (when connected)</label>
+          </div>
+          <div class="row" style="margin-top:8px">
+            <label class="f">Keep last N backups on Drive<input type="number" id="gKeep" min="3" max="500" value="30" style="width:120px"></label>
+          </div>
+          <div class="msg" id="gMsg"></div>
+          <div class="row" style="margin-top:6px;justify-content:space-between"><b class="tiny" style="letter-spacing:.1em">BACKUPS ON DRIVE</b><button class="btn sm ghost" id="gRefresh">↻ Refresh list</button></div>
+          <div class="blist" id="gList"><div class="tiny muted">Connect to list backups.</div></div>
+          <p class="tiny muted">Only encrypted files (<code>.cpsvault</code>) are uploaded. Google never sees the data or the passphrase. Scope used: <code>drive.file</code> — the app can only see files it created itself.</p>
+        </div>
+
+        <div class="glass card corner" style="--pc:var(--mag)">
+          <h3>Offline encrypted backup file</h3>
+          <p class="tiny muted" style="margin-top:0">Same encrypted format as Drive — use for pen-drive/offline copies or to move data to another computer.</p>
+          <div class="row">
+            <button class="btn sm mag" id="fExport">⬇ Download encrypted backup</button>
+            <button class="btn sm mag" id="fImportBtn">⬆ Restore from file</button>
+            <input type="file" id="fImport" accept=".cpsvault,.json" class="hidden">
+          </div>
+          <div class="msg" id="fMsg"></div>
+
+          <h3 style="margin-top:22px">Session security</h3>
+          <div class="row">
+            <label class="f">Auto-lock after idle (minutes)
+              <select id="sLock"><option>3</option><option>5</option><option>10</option><option>15</option><option>30</option></select>
+            </label>
+          </div>
+          <label class="chk" style="margin-top:10px"><input type="checkbox" id="sExportAuth"> Ask passphrase before any PDF / Excel export</label>
+          <label class="chk" style="margin-top:8px"><input type="checkbox" id="sWatermark"> Print "CONFIDENTIAL" watermark on PDFs</label>
+        </div>
+
+        <div class="glass card corner" style="--pc:var(--mag)">
+          <h3>Change master passphrase</h3>
+          <form id="cpForm" autocomplete="off" style="display:flex;flex-direction:column;gap:10px">
+            <input type="password" id="cpOld" placeholder="Current passphrase" autocomplete="current-password">
+            <input type="password" id="cpNew1" placeholder="New passphrase (min 10 chars)" autocomplete="new-password">
+            <input type="password" id="cpNew2" placeholder="Confirm new passphrase" autocomplete="new-password">
+            <button class="btn sm mag" type="submit">Re-encrypt vault with new passphrase</button>
+            <div class="msg" id="cpMsg"></div>
+          </form>
+          <p class="tiny muted">Older backups stay readable with the passphrase that was active when they were made.</p>
+
+          <h3 style="margin-top:22px;color:var(--red)">Danger zone</h3>
+          <button class="btn sm red" id="wipeBtn">Erase vault from this device</button>
+          <p class="tiny muted">Removes every encrypted record from this browser. Drive backups are not touched.</p>
+        </div>
+
+        <div class="glass card corner" style="--pc:var(--mag)">
+          <h3>Audit trail (encrypted)</h3>
+          <div class="audit" id="auditLog"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="credit-bar">© ARUN R</footer>
+</div>
+
+<div id="modal" class="modal hidden" role="dialog" aria-modal="true"></div>
+<div id="toasts" aria-live="polite"></div>
+<noscript><div style="position:fixed;inset:0;display:grid;place-items:center;color:#fff;background:#020912;z-index:99">JavaScript is required.</div></noscript>
+
+<script>
+'use strict';
+/* =====================================================================
+   CYBER PORTAL SECURE SUITE — core (utilities, crypto, vault, drive)
+   ===================================================================== */
+const APP_NAME = 'Cyber Portal Secure Suite';
+const APP_VER = '1.0';
+const ORG = 'Cyber Crime Police Station, Kochi City';
+const PBKDF2_ITER = 600000;
+
+/* ---------------- small utilities ---------------- */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const num = v => {
+  if (v === null || v === undefined || v === '') return 0;
+  if (typeof v === 'number') return isNaN(v) ? 0 : v;
+  const n = parseFloat(String(v).replace(/[^0-9.\-]/g, ''));
+  return isNaN(n) ? 0 : n;
+};
+const fmtN = n => Number(n || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+const fmtMoney = n => {
+  n = Number(n || 0); const a = Math.abs(n), s = n < 0 ? '-' : '';
+  if (a >= 1e7) return s + '₹' + (a / 1e7).toFixed(2) + ' Cr';
+  if (a >= 1e5) return s + '₹' + (a / 1e5).toFixed(2) + ' L';
+  return s + '₹' + a.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+};
+const fmtMoneyPdf = n => fmtMoney(n).replace('₹', 'Rs.');
+const pad2 = n => String(n).padStart(2, '0');
+const isoOf = d => d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+const isoToday = () => isoOf(new Date());
+const dmy = iso => iso ? iso.split('-').reverse().join('-') : '—';
+const nowStamp = () => { const d = new Date(); return dmy(isoOf(d)) + ' ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes()); };
+const addDays = (iso, n) => { const [y, m, d] = iso.split('-').map(Number); const t = new Date(y, m - 1, d + n); return isoOf(t); };
+const daysBetween = (a, b) => { const [y1, m1, d1] = a.split('-').map(Number), [y2, m2, d2] = b.split('-').map(Number); return Math.round((new Date(y2, m2 - 1, d2) - new Date(y1, m1 - 1, d1)) / 864e5); };
+const normKey = s => String(s ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+const isTotalName = s => /^(grand\s*)?total$|^all$/i.test(String(s ?? '').trim());
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const hexRgb = h => { h = h.replace('#', ''); return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]; };
+
+// Pull a date out of a raw-export file name: YYYYMMDD…, DD-MM-YYYY, or …to_DDMMYYYY
+function dateFromName(name) {
+  const s = String(name || '');
+  let m = s.match(/(20\d{2})[-_.]?(0[1-9]|1[0-2])[-_.]?(0[1-9]|[12]\d|3[01])(?!\d{7})/);
+  if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+  const all = [...s.matchAll(/(0[1-9]|[12]\d|3[01])[-_.]?(0[1-9]|1[0-2])[-_.]?(20\d{2})(?!\d)/g)];
+  if (all.length) { const x = all[all.length - 1]; return `${x[3]}-${x[2]}-${x[1]}`; }
+  return '';
+}
+
+/* ---------------- icons ---------------- */
+const ICONS = {
+  grid: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+  chart: '<path d="M3 21h18"/><rect x="5" y="11" width="3" height="7"/><rect x="10.5" y="6" width="3" height="12"/><rect x="16" y="9" width="3" height="9"/><path d="M4 7l5-3 5 3 6-4"/>',
+  lock: '<rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15.5" r="1.6"/>',
+  shield: '<path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z"/><path d="M8.5 12l2.5 2.5 4.5-5"/>',
+  rupee: '<circle cx="12" cy="12" r="9.5"/><path d="M8.5 7.5h7M8.5 10.5h7M11 7.5c3.5 0 3.5 6-1 6h-1.5l5 4"/>',
+  bank: '<path d="M3 10l9-6 9 6"/><path d="M5 10v8M9.5 10v8M14.5 10v8M19 10v8"/><path d="M3 21h18M3 18h18"/>',
+  phone: '<rect x="6.5" y="2" width="11" height="20" rx="2.5"/><path d="M10.5 5h3"/><circle cx="12" cy="18" r="1"/><path d="M1.5 9a6 6 0 0 1 0 6M22.5 9a6 6 0 0 1 0 6"/>',
+  radar: '<circle cx="12" cy="12" r="9.5"/><circle cx="12" cy="12" r="5.5"/><circle cx="12" cy="12" r="1.5"/><path d="M12 12l6.5-6.5"/>',
+  doc: '<path d="M6 2h8l5 5v15H6z"/><path d="M14 2v5h5"/><path d="M9 12h7M9 15.5h7M9 19h4"/>',
+  link: '<circle cx="12" cy="12" r="9.5"/><path d="M2.5 12h19M12 2.5c3 3 3 16 0 19M12 2.5c-3 3-3 16 0 19"/>',
+  cloud: '<path d="M7 18h10a4 4 0 0 0 .6-7.96A6 6 0 0 0 6.1 9.2 4.5 4.5 0 0 0 7 18z"/><path d="M12 11v5M9.5 13.5L12 11l2.5 2.5"/>',
+  upload: '<path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v4h16v-4"/>'
+};
+function icon(name) { return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${ICONS[name] || ''}</svg>`; }
+function fillIcons(root = document) { $$('svg[data-ic]', root).forEach(s => { s.setAttribute('fill', 'none'); s.setAttribute('stroke', 'currentColor'); s.setAttribute('stroke-width', '1.7'); s.setAttribute('stroke-linecap', 'round'); s.setAttribute('stroke-linejoin', 'round'); s.innerHTML = ICONS[s.dataset.ic] || ''; }); }
+const LOGO_SVG = `<defs><linearGradient id="lg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#00e5ff"/><stop offset="1" stop-color="#2979ff"/></linearGradient></defs>
+<path d="M32 3l24 9v17c0 15-10.5 26-24 32C18.5 55 8 44 8 29V12z" fill="rgba(0,229,255,.08)" stroke="url(#lg1)" stroke-width="2.4"/>
+<path d="M32 12v12M32 40v10M20 28h8M36 28h8M26 22l-5-5M38 22l5-5M26 34l-5 5M38 34l5 5" stroke="#00e5ff" stroke-width="1.6" stroke-linecap="round" opacity=".75"/>
+<circle cx="32" cy="29" r="7" fill="none" stroke="#00ff9d" stroke-width="2.2"/><circle cx="32" cy="29" r="2.4" fill="#00ff9d"/>
+<circle cx="32" cy="12" r="2" fill="#00e5ff"/><circle cx="32" cy="50" r="2" fill="#00e5ff"/><circle cx="20" cy="28" r="2" fill="#00e5ff"/><circle cx="44" cy="28" r="2" fill="#00e5ff"/>`;
+
+/* ---------------- toasts / modal / busy ---------------- */
+function toast(msg, kind = 'info', ms = 4200) {
+  const t = document.createElement('div'); t.className = 'toast ' + kind; t.textContent = msg;
+  $('#toasts').appendChild(t); setTimeout(() => t.remove(), ms);
+}
+function modal({ title, html, ok = 'OK', cancel = 'Cancel', danger = false, onOpen, validate }) {
+  return new Promise(resolve => {
+    const m = $('#modal');
+    m.innerHTML = `<div class="box glass corner"><h3>${esc(title)}</h3><div class="body">${html}</div>
+      <div class="foot">${cancel ? `<button class="btn ghost" data-a="c">${esc(cancel)}</button>` : ''}<button class="btn ${danger ? 'red' : 'primary'}" data-a="o">${esc(ok)}</button></div></div>`;
+    m.classList.remove('hidden');
+    const close = v => { m.classList.add('hidden'); m.innerHTML = ''; resolve(v); };
+    const okBtn = $('[data-a=o]', m);
+    const doOk = async () => {
+      if (validate) { okBtn.disabled = true; try { const r = await validate(m); if (r === false) { okBtn.disabled = false; return; } close(r === undefined ? true : r); } catch (e) { okBtn.disabled = false; toast(e.message, 'err'); } }
+      else close(true);
+    };
+    okBtn.onclick = doOk;
+    const cb = $('[data-a=c]', m); if (cb) cb.onclick = () => close(null);
+    m.onkeydown = e => { if (e.key === 'Escape' && cancel) close(null); if (e.key === 'Enter' && e.target.tagName === 'INPUT') { e.preventDefault(); doOk(); } };
+    if (onOpen) onOpen(m);
+    const first = $('input', m); (first || okBtn).focus();
+  });
+}
+async function withBusy(text, fn) {
+  const b = document.createElement('div'); b.className = 'busy'; b.innerHTML = `<div class="sp"></div><p>${esc(text)}</p>`;
+  document.body.appendChild(b);
+  try { await sleep(30); return await fn(); } finally { b.remove(); }
+}
+
+/* ---------------- crypto (Web Crypto API) ---------------- */
+const te = new TextEncoder(), td = new TextDecoder();
+// Own base64 codec (standard alphabet)
+const B64C = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+const B64R = (() => { const r = new Int16Array(128).fill(-1); for (let i = 0; i < 64; i++) r[B64C.charCodeAt(i)] = i; return r; })();
+const b64 = buf => {
+  const b = new Uint8Array(buf); let out = '', i = 0;
+  for (; i + 2 < b.length; i += 3) { const n = (b[i] << 16) | (b[i + 1] << 8) | b[i + 2]; out += B64C[n >> 18 & 63] + B64C[n >> 12 & 63] + B64C[n >> 6 & 63] + B64C[n & 63]; }
+  if (i < b.length) { const n = (b[i] << 16) | ((i + 1 < b.length ? b[i + 1] : 0) << 8); out += B64C[n >> 18 & 63] + B64C[n >> 12 & 63] + (i + 1 < b.length ? B64C[n >> 6 & 63] : '=') + '='; }
+  return out;
+};
+const unb64 = s => {
+  s = String(s).replace(/[^A-Za-z0-9+/]/g, ''); const out = new Uint8Array(Math.floor(s.length * 3 / 4)); let o = 0, acc = 0, bits = 0;
+  for (let i = 0; i < s.length; i++) { acc = (acc << 6) | B64R[s.charCodeAt(i)]; bits += 6; if (bits >= 8) { bits -= 8; out[o++] = (acc >> bits) & 255; } }
+  return out.subarray(0, o);
+};
+const rand = n => crypto.getRandomValues(new Uint8Array(n));
+const randId = () => Array.from(rand(12), x => x.toString(16).padStart(2, '0')).join('');
+
+async function deriveKey(pass, salt, iter) {
+  const base = await crypto.subtle.importKey('raw', te.encode(String(pass).normalize('NFKC')), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: iter, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+}
+// AES-256-GCM; the record name is bound as additional authenticated data so
+// encrypted records cannot be swapped between slots without detection.
+async function seal(key, obj, aad) {
+  const iv = rand(12);
+  const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv, additionalData: te.encode(aad) }, key, te.encode(JSON.stringify(obj)));
+  return { iv: b64(iv), ct: b64(ct) };
+}
+async function unseal(key, rec, aad) {
+  const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(rec.iv), additionalData: te.encode(aad) }, key, unb64(rec.ct));
+  return JSON.parse(td.decode(pt));
+}
+function passStrength(p) {
+  let s = 0; if (!p) return 0;
+  if (p.length >= 10) s++; if (p.length >= 14) s++;
+  if (/[a-z]/.test(p) && /[A-Z]/.test(p)) s++;
+  if (/\d/.test(p)) s++; if (/[^A-Za-z0-9]/.test(p)) s++;
+  if (/^(.)\1+$/.test(p) || /password|123456|qwerty|police/i.test(p)) s = Math.min(s, 1);
+  return s; // 0..5
+}
+function passPolicy(p) {
+  if (!p || p.length < 10) return 'Passphrase must be at least 10 characters.';
+  if (passStrength(p) < 3) return 'Passphrase is too weak — mix upper/lower case, numbers and symbols.';
+  return '';
+}
+
+/* ---------------- IndexedDB ---------------- */
+const IDB = {
+  db: null,
+  open() {
+    return new Promise((res, rej) => {
+      const r = indexedDB.open('cps_secure_vault', 1);
+      r.onupgradeneeded = () => { const d = r.result; ['meta', 'recs'].forEach(n => { if (!d.objectStoreNames.contains(n)) d.createObjectStore(n); }); };
+      r.onsuccess = () => { IDB.db = r.result; res(); };
+      r.onerror = () => rej(r.error || new Error('IndexedDB unavailable'));
+      r.onblocked = () => rej(new Error('Vault database is blocked by another open tab.'));
+    });
+  },
+  run(store, mode, fn) {
+    return new Promise((res, rej) => {
+      const t = IDB.db.transaction(store, mode); const s = t.objectStore(store); let out;
+      const r = fn(s); if (r) r.onsuccess = () => { out = r.result; };
+      t.oncomplete = () => res(out); t.onerror = () => rej(t.error); t.onabort = () => rej(t.error || new Error('Transaction aborted'));
+    });
+  },
+  get: (st, k) => IDB.run(st, 'readonly', s => s.get(k)),
+  put: (st, k, v) => IDB.run(st, 'readwrite', s => s.put(v, k)),
+  del: (st, k) => IDB.run(st, 'readwrite', s => s.delete(k)),
+  keys: st => IDB.run(st, 'readonly', s => s.getAllKeys()),
+  clear: st => IDB.run(st, 'readwrite', s => s.clear()),
+  putMany(st, entries) { return IDB.run(st, 'readwrite', s => { entries.forEach(([k, v]) => s.put(v, k)); return null; }); }
+};
+
+/* ---------------- Vault ---------------- */
+function defaultSettings() {
+  return {
+    autoLockMin: 10, exportAuth: true, watermark: true,
+    drive: { clientId: '', folderId: '', autoBackup: true, keep: 30, lastBackup: '' },
+    mrmMap: {}, grm: { pendingRoles: 'IO, District GRO', bankRoles: 'Bank', sop: 75 },
+    sahayog: { city: 'Ernakulam City', from: '01-01-2026' },
+    dirty: 0
+  };
+}
+const Vault = {
+  key: null, meta: null, index: { snaps: [] }, settings: defaultSettings(), audit: [],
+  async exists() { return !!(await IDB.get('meta', 'vault')); },
+  async create(pass) {
+    const salt = rand(16);
+    const key = await deriveKey(pass, salt, PBKDF2_ITER);
+    const verifier = await seal(key, { ok: 'CPS-VAULT-OK', created: Date.now() }, 'verifier');
+    const meta = { v: 1, salt: b64(salt), iter: PBKDF2_ITER, verifier, created: new Date().toISOString() };
+    this.key = key; this.meta = meta; this.index = { snaps: [] }; this.settings = defaultSettings(); this.audit = [];
+    await IDB.put('meta', 'vault', meta);
+    await this.write('index', this.index); await this.write('settings', this.settings);
+    await this.log('Vault created');
+  },
+  async checkPass(pass, meta = this.meta) {
+    try { const k = await deriveKey(pass, unb64(meta.salt), meta.iter); const v = await unseal(k, meta.verifier, 'verifier'); return v.ok === 'CPS-VAULT-OK' ? k : null; }
+    catch (e) { return null; }
+  },
+  async unlock(pass) {
+    const meta = await IDB.get('meta', 'vault'); if (!meta) return false;
+    const key = await this.checkPass(pass, meta); if (!key) return false;
+    this.key = key; this.meta = meta;
+    this.index = (await this.read('index')) || { snaps: [] };
+    const s = (await this.read('settings')) || {};
+    const d = defaultSettings();
+    this.settings = Object.assign(d, s, { drive: Object.assign(d.drive, s.drive || {}), grm: Object.assign(d.grm, s.grm || {}), sahayog: Object.assign(d.sahayog, s.sahayog || {}) });
+    this.audit = (await this.read('audit')) || [];
+    return true;
+  },
+  async read(k) { const rec = await IDB.get('recs', k); return rec ? unseal(this.key, rec, 'rec:' + k) : null; },
+  async write(k, obj) { await IDB.put('recs', k, await seal(this.key, obj, 'rec:' + k)); },
+  async saveSettings() { await this.write('settings', this.settings); },
+  async log(action, detail = '') {
+    this.audit.unshift({ ts: new Date().toISOString(), action, detail: String(detail).slice(0, 200) });
+    if (this.audit.length > 600) this.audit.length = 600;
+    try { await this.write('audit', this.audit); } catch (e) { /* ignore */ }
+    if (typeof renderAudit === 'function') renderAudit();
+  },
+  snapsOf(portal) { return this.index.snaps.filter(s => s.portal === portal).sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : 0); },
+  findSnap(portal, date) { return this.index.snaps.find(s => s.portal === portal && s.date === date); },
+  async saveSnapshot(snap) {
+    const ex = this.findSnap(snap.portal, snap.date);
+    const id = ex ? ex.id : randId();
+    await this.write('snap:' + id, snap);
+    const entry = { id, portal: snap.portal, date: snap.date, savedAt: snap.savedAt, summary: snap.summary };
+    if (ex) Object.assign(ex, entry); else this.index.snaps.push(entry);
+    await this.write('index', this.index);
+    this.settings.dirty = (this.settings.dirty || 0) + 1; await this.saveSettings();
+    return id;
+  },
+  getSnapshot(id) { return this.read('snap:' + id); },
+  async deleteSnapshot(id) {
+    await IDB.del('recs', 'snap:' + id);
+    this.index.snaps = this.index.snaps.filter(s => s.id !== id);
+    await this.write('index', this.index);
+    this.settings.dirty = (this.settings.dirty || 0) + 1; await this.saveSettings();
+  },
+  async exportPayload() {
+    const snaps = {};
+    for (const e of this.index.snaps) snaps[e.id] = await this.getSnapshot(e.id);
+    const settings = JSON.parse(JSON.stringify(this.settings)); delete settings.dirty;
+    return { index: this.index, snaps, settings, exportedAt: new Date().toISOString(), app: APP_NAME, ver: APP_VER };
+  },
+  async backupText() {
+    const payload = await this.exportPayload();
+    const enc = await seal(this.key, payload, 'backup');
+    return JSON.stringify({ format: 'CPS-VAULT-BACKUP', v: 1, app: APP_NAME, created: new Date().toISOString(), snapshots: this.index.snaps.length, kdf: { alg: 'PBKDF2-SHA256', iter: this.meta.iter, salt: this.meta.salt }, cipher: 'AES-256-GCM', iv: enc.iv, ct: enc.ct });
+  },
+  // Returns the decrypted payload. Uses the current key when the backup was
+  // made with this vault's salt; otherwise asks for that backup's passphrase.
+  async openBackup(text, askPass) {
+    let f; try { f = JSON.parse(text); } catch (e) { throw new Error('This is not a valid backup file.'); }
+    if (f.format !== 'CPS-VAULT-BACKUP') throw new Error('This is not a Cyber Portal Secure Suite backup.');
+    if (f.kdf.salt === this.meta.salt && f.kdf.iter === this.meta.iter) {
+      try { return await unseal(this.key, f, 'backup'); } catch (e) { /* fall through to passphrase */ }
+    }
+    const pass = await askPass(); if (!pass) throw new Error('Restore cancelled.');
+    const key = await deriveKey(pass, unb64(f.kdf.salt), f.kdf.iter);
+    try { return await unseal(key, f, 'backup'); } catch (e) { throw new Error('Wrong passphrase for this backup (or the file was altered).'); }
+  },
+  // Merge snapshots from a backup; for the same portal+date the newer save wins.
+  async mergePayload(p) {
+    let added = 0, updated = 0, skipped = 0;
+    for (const e of (p.index && p.index.snaps) || []) {
+      const snap = p.snaps[e.id]; if (!snap) continue;
+      const ex = this.findSnap(snap.portal, snap.date);
+      if (ex && ex.savedAt >= snap.savedAt) { skipped++; continue; }
+      await this.saveSnapshot(snap); ex ? updated++ : added++;
+    }
+    if (p.settings) {
+      if (p.settings.mrmMap) this.settings.mrmMap = Object.assign({}, p.settings.mrmMap, this.settings.mrmMap);
+      if (!this.settings.drive.clientId && p.settings.drive && p.settings.drive.clientId) this.settings.drive.clientId = p.settings.drive.clientId;
+      await this.saveSettings();
+    }
+    return { added, updated, skipped };
+  },
+  async changePass(oldPass, newPass) {
+    if (!(await this.checkPass(oldPass))) throw new Error('Current passphrase is wrong.');
+    const keys = (await IDB.keys('recs')).filter(k => k !== 'verifier');
+    const plain = [];
+    for (const k of keys) plain.push([k, await this.read(k)]);
+    const salt = rand(16);
+    const nk = await deriveKey(newPass, salt, PBKDF2_ITER);
+    const recs = [];
+    for (const [k, v] of plain) recs.push([k, await seal(nk, v, 'rec:' + k)]);
+    const verifier = await seal(nk, { ok: 'CPS-VAULT-OK', created: Date.now() }, 'verifier');
+    const meta = Object.assign({}, this.meta, { salt: b64(salt), iter: PBKDF2_ITER, verifier, changed: new Date().toISOString() });
+    await IDB.putMany('recs', recs);
+    await IDB.put('meta', 'vault', meta);
+    this.key = nk; this.meta = meta;
+  },
+  async wipe() { await IDB.clear('recs'); await IDB.clear('meta'); }
+};
+
+/* ---------------- failed-login throttle (non-sensitive, plain) ---------------- */
+const Throttle = {
+  get() { try { return JSON.parse(localStorage.getItem('cps_fail') || '{"n":0,"until":0}'); } catch (e) { return { n: 0, until: 0 }; } },
+  set(v) { try { localStorage.setItem('cps_fail', JSON.stringify(v)); } catch (e) { } },
+  fail() { const v = this.get(); v.n++; if (v.n >= 5) v.until = Date.now() + Math.min(30000 * Math.pow(2, v.n - 5), 3600000); this.set(v); return v; },
+  ok() { this.set({ n: 0, until: 0 }); },
+  wait() { const v = this.get(); return Math.max(0, v.until - Date.now()); }
+};
+
+/* ---------------- Google Drive (encrypted backups only) ---------------- */
+const DRIVE_FOLDER = 'CyberPortalSecure_Backups';
+const Drive = {
+  token: null, exp: 0, client: null, cid: '',
+  connected() { return !!this.token && Date.now() < this.exp; },
+  lib() { return window.google && google.accounts && google.accounts.oauth2; },
+  connect() {
+    return new Promise((resolve, reject) => {
+      const cid = (Vault.settings.drive.clientId || '').trim();
+      if (!cid) return reject(new Error('Enter and save the Google OAuth Client ID first.'));
+      if (!/^https:|^http:\/\/(localhost|127\.0\.0\.1)/.test(location.href)) return reject(new Error('Google Drive needs the app to be opened from an https:// address (e.g. GitHub Pages) or http://localhost — not from a file.'));
+      if (!this.lib()) return reject(new Error('Google sign-in library is not loaded. Check the internet connection and reload.'));
+      if (!this.client || this.cid !== cid) {
+        this.client = google.accounts.oauth2.initTokenClient({
+          client_id: cid, scope: 'https://www.googleapis.com/auth/drive.file', callback: () => { },
+          error_callback: e => { if (this._rej) this._rej(new Error(e && (e.message || e.type) || 'Google sign-in was closed')); }
+        });
+        this.cid = cid;
+      }
+      this._rej = reject;
+      this.client.callback = r => {
+        if (r.error) return reject(new Error(r.error_description || r.error));
+        this.token = r.access_token; this.exp = Date.now() + (Number(r.expires_in || 3600) - 60) * 1000;
+        updateDriveChip(); resolve();
+      };
+      this.client.requestAccessToken({ prompt: '' });
+    });
+  },
+  disconnect() { if (this.token && this.lib()) { try { google.accounts.oauth2.revoke(this.token, () => { }); } catch (e) { } } this.token = null; this.exp = 0; updateDriveChip(); },
+  async api(path, opts = {}) {
+    if (!this.connected()) await this.connect();
+    const r = await fetch('https://www.googleapis.com/' + path, Object.assign({}, opts, { headers: Object.assign({}, opts.headers || {}, { Authorization: 'Bearer ' + this.token }) }));
+    if (r.status === 401) { this.token = null; updateDriveChip(); throw new Error('Google session expired — click "Connect Google Drive" again.'); }
+    if (!r.ok) { let t = ''; try { t = await r.text(); } catch (e) { } throw new Error('Drive error ' + r.status + ': ' + t.slice(0, 180)); }
+    return r;
+  },
+  async folder() {
+    let id = Vault.settings.drive.folderId;
+    if (id) { try { const j = await (await this.api('drive/v3/files/' + id + '?fields=id,trashed')).json(); if (!j.trashed) return id; } catch (e) { } }
+    const q = encodeURIComponent(`name='${DRIVE_FOLDER}' and mimeType='application/vnd.google-apps.folder' and trashed=false`);
+    const j = await (await this.api('drive/v3/files?spaces=drive&fields=files(id,name)&q=' + q)).json();
+    if (j.files && j.files.length) id = j.files[0].id;
+    else {
+      const c = await this.api('drive/v3/files?fields=id', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: DRIVE_FOLDER, mimeType: 'application/vnd.google-apps.folder', description: 'Encrypted backups of Cyber Portal Secure Suite' }) });
+      id = (await c.json()).id;
+    }
+    Vault.settings.drive.folderId = id; await Vault.saveSettings();
+    return id;
+  },
+  async upload(name, text) {
+    const folder = await this.folder();
+    const bd = 'cps' + randId();
+    const meta = { name, parents: [folder], mimeType: 'application/octet-stream', description: 'Encrypted (AES-256-GCM) Cyber Portal Secure Suite backup' };
+    const body = `--${bd}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(meta)}\r\n--${bd}\r\nContent-Type: application/octet-stream\r\n\r\n${text}\r\n--${bd}--`;
+    return (await this.api('upload/drive/v3/files?uploadType=multipart&fields=id,name,size,createdTime', { method: 'POST', headers: { 'Content-Type': 'multipart/related; boundary=' + bd }, body })).json();
+  },
+  async list() {
+    const folder = await this.folder();
+    const q = encodeURIComponent(`'${folder}' in parents and trashed=false`);
+    const j = await (await this.api('drive/v3/files?orderBy=createdTime%20desc&pageSize=500&fields=files(id,name,size,createdTime)&q=' + q)).json();
+    return j.files || [];
+  },
+  async download(id) { return (await this.api('drive/v3/files/' + id + '?alt=media')).text(); },
+  async remove(id) { await this.api('drive/v3/files/' + id, { method: 'DELETE' }); },
+  async prune(keep) { const f = await this.list(); for (const x of f.slice(Math.max(3, keep))) await this.remove(x.id); }
+};
+function updateDriveChip() {
+  const c = $('#driveChip'); if (!c) return;
+  const dirty = Vault.settings && Vault.settings.dirty;
+  c.classList.toggle('on', Drive.connected());
+  c.classList.toggle('warn', !Drive.connected() && !!dirty);
+  c.lastChild.textContent = Drive.connected() ? (dirty ? `DRIVE: ${dirty} UNSYNCED` : 'DRIVE: SYNCED') : (dirty ? `DRIVE: ${dirty} UNSYNCED` : 'DRIVE: OFF');
+}
+
+/* ---------------- file reading ---------------- */
+function readArrayBuffer(file) {
+  return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(new Error('Could not read ' + file.name)); r.readAsArrayBuffer(file); });
+}
+function needLib(name) {
+  const ok = { XLSX: typeof XLSX !== 'undefined', jsPDF: !!(window.jspdf && window.jspdf.jsPDF), pdfjs: !!window.pdfjsLib }[name];
+  if (!ok) throw new Error({ XLSX: 'Excel library', jsPDF: 'PDF library', pdfjs: 'PDF reader library' }[name] + ' did not load — check the internet connection and reload the page.');
+}
+async function readWorkbook(file, opts = {}) {
+  needLib('XLSX');
+  const ab = await readArrayBuffer(file);
+  const isCsv = /\.csv$/i.test(file.name);
+  return XLSX.read(new Uint8Array(ab), Object.assign({ type: 'array' }, isCsv ? { raw: true } : {}, opts));
+}
+const sheetAOA = ws => XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: '', blankrows: false });
+const sheetRows = (ws, raw = true) => XLSX.utils.sheet_to_json(ws, { defval: '', raw });
+async function readPdfLines(file) {
+  needLib('pdfjs');
+  if (!pdfjsLib.GlobalWorkerOptions.workerSrc) pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  const data = new Uint8Array(await readArrayBuffer(file));
+  const pdf = await pdfjsLib.getDocument({ data }).promise;
+  let lines = [];
+  for (let p = 1; p <= pdf.numPages; p++) {
+    const page = await pdf.getPage(p); const content = await page.getTextContent();
+    const byY = [];
+    content.items.forEach(it => { const y = Math.round(it.transform[5]); let b = byY.find(x => Math.abs(x.y - y) <= 2.5); if (!b) { b = { y, items: [] }; byY.push(b); } b.items.push(it); });
+    byY.sort((a, b) => b.y - a.y);
+    lines = lines.concat(byY.map(b => { b.items.sort((a, c) => a.transform[4] - c.transform[4]); return b.items.map(i => i.str).join(' ').replace(/\s+/g, ' ').trim(); }).filter(Boolean));
+  }
+  return lines;
+}
+function downloadBlob(blob, name) {
+  const a = document.createElement('a'); const url = URL.createObjectURL(blob);
+  a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+}
+
+/* =====================================================================
+   PORTAL REGISTRY + PARSERS (ported from the individual portal tools)
+   Every portal produces "sections" of station rows: {name, v:{col:value}}
+   R = received/total column, C = closed columns, P = pending columns.
+   ===================================================================== */
+const sumK = (v, keys) => keys.reduce((a, k) => a + num(v[k]), 0);
+const secR = (d, v) => num(v[d.R]);
+const secC = (d, v) => sumK(v, d.C);
+const secP = (d, v) => sumK(v, d.P);
+const secPct = (d, v) => { const n = d.pct ? sumK(v, d.pct[0]) : secC(d, v); const den = d.pct ? sumK(v, d.pct[1]) : secR(d, v); return den > 0 ? n * 100 / den : 0; };
+const tierOf = (d, p) => { const [g, m] = d.tiers || [90, 70]; return p >= g ? 'g' : p >= m ? 'm' : 'b'; };
+function findKey(keys, patterns) { for (const re of patterns) { const k = keys.find(x => re.test(String(x).trim())); if (k !== undefined) return k; } return null; }
+
+function mkSection(d, stations) {
+  const totals = {}; d.cols.forEach(c => totals[c.k] = 0);
+  stations.forEach(s => d.cols.forEach(c => { totals[c.k] += num(s.v[c.k]); }));
+  return { stations, totals };
+}
+function summarize(p, sections) {
+  const o = {};
+  p.sections.forEach(d => { const t = sections[d.id]; if (!t) return; o[d.id] = { R: secR(d, t.totals), C: secC(d, t.totals), P: secP(d, t.totals), pct: secPct(d, t.totals), n: t.stations.length }; });
+  return o;
+}
+
+/* ---------------- NCRP ---------------- */
+function parseNCRP(aoa) {
+  const ALIAS = {
+    station: ['policestation', 'station', 'psname'], registered: ['totalcomplaintregistered', 'totalregistered', 'complaintregistered'],
+    rejected: ['rejected'], withdrawn: ['complaintwithdrawn', 'withdrawn'], closed: ['closed'], noaction: ['noaction'],
+    underprocess: ['underprocess'], pending: ['pending'], fir: ['firregistered', 'fir'], reopen: ['reopen', 'reopened']
+  };
+  const nh = h => String(h ?? '').toLowerCase().replace(/[^a-z]/g, '');
+  const mapH = row => { const m = {}; (row || []).forEach((raw, i) => { const n = nh(raw); for (const k in ALIAS) { if (m[k] !== undefined) continue; if (ALIAS[k].some(a => n === a || (n.length > 3 && n.includes(a)))) m[k] = i; } }); return m; };
+  let hi = -1, hm = null;
+  for (let i = 0; i < Math.min(aoa.length, 8); i++) { const m = mapH(aoa[i]); if (m.station !== undefined && m.registered !== undefined) { hi = i; hm = m; break; } }
+  if (hi < 0) throw new Error('Could not find NCRP column headers ("Police Station", "Total Complaint Registered"…).');
+  const g = (r, k) => hm[k] !== undefined ? num(r[hm[k]]) : 0;
+  const out = [];
+  aoa.slice(hi + 1).forEach(r => {
+    const name = String(r[hm.station] ?? '').trim(); if (!name || isTotalName(name)) return;
+    const fir = g(r, 'fir');
+    out.push({ name, v: { registered: g(r, 'registered'), closed: g(r, 'rejected') + g(r, 'withdrawn') + g(r, 'closed') + g(r, 'noaction') + fir, pending: g(r, 'underprocess') + g(r, 'pending'), fir, reopen: g(r, 'reopen') } });
+  });
+  if (!out.length) throw new Error('No station rows found under the NCRP headers.');
+  return out;
+}
+
+/* ---------------- MRM ---------------- */
+const MRM_CATS = ['Victim Requests Remains', 'Pending at Stations', 'Order Refer Back', 'Pending at Bank', 'Restoration not Complied', 'Restoration Completed', 'Already Refunded'];
+const MRM_CATKEY = { 'Victim Requests Remains': 'vrr', 'Pending at Stations': 'pas', 'Order Refer Back': 'orb', 'Pending at Bank': 'pab', 'Restoration not Complied': 'rnc', 'Restoration Completed': 'rc', 'Already Refunded': 'ar' };
+function mrmGuess(statusRaw) {
+  const s = String(statusRaw || '').toLowerCase();
+  if (s.includes('pending at lea')) return 'Pending at Stations';
+  if (s.includes('station') && s.includes('pending')) return 'Pending at Stations';
+  if (s.includes('refer back') || s.includes('referback') || s.includes('refer-back')) return 'Order Refer Back';
+  if (s.includes('pending at bank') || (s.includes('bank') && s.includes('pending'))) return 'Pending at Bank';
+  if (s.includes('sent to bank') || s.includes('send to bank')) return 'Pending at Bank';
+  if (s.includes('not complied') || s.includes('not complete') || s.includes('non complied') || s.includes('non-complied')) return 'Restoration not Complied';
+  if (s.includes('complet') || s.includes('restored') || s.includes('restoration done')) return 'Restoration Completed';
+  if (s.includes('refund')) return 'Already Refunded';
+  if (s.includes('close')) return 'Restoration Completed';
+  return 'Victim Requests Remains';
+}
+const MRM_ACK_CANDS = ['Acknowledgement Number', 'Acknowledgement No', 'Acknowledgement No.', 'Acknowledgement Num', 'Acknowledgement', 'Ack Number', 'Ack No', 'Ack No.', 'Ack Num', 'Acknowledgment Number', 'Acknowledgment No', 'Acknowledgment No.', 'Acknowledgment'];
+const MRM_STATION_NOTE = 'How "Pending at Police Station" is calculated: Victim Requests Remains + Pending at Stations (cases still awaiting police/LEA action before they can move to the bank side). "Pending at Bank", "Order Refer Back", "Restoration Completed" and "Already Refunded" are counted separately as bank-side / resolved cases.';
+const MRM_VICTIM_NOTE = '* The figure in brackets against "Victim Requests Remains" is the number of distinct victims (counted by Acknowledgement Number) behind that pending count — since one victim can have more than one request still remaining, the victim count is always equal to or lower than the total requests remaining.';
+const MRM_COURT = 50000;
+const MRM_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+function mrmNormAck(raw) { let a = String(raw == null ? '' : raw).trim().replace(/\s+/g, ' '); if (/^\d+\.0+$/.test(a)) a = a.replace(/\.0+$/, ''); if (!a || /^n\/?a$/i.test(a)) return ''; return a; }
+function mrmPctRestored(v) { return v.total ? v.rc * 100 / v.total : 0; }
+function mrmPctPendStation(v) { return v.total ? (v.vrr + v.pas) * 100 / v.total : 0; }
+function mrmPctPolice(v) { return v.total ? (v.total - v.vrr - v.pas) * 100 / v.total : 0; }
+// manual = {stationName: {vc, vp, bc, bp}} from the optional manual-data template
+function parseMRM(files, savedMap = {}, manual = {}) {
+  const memo = {}; const nh = x => String(x || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  const keysOf = r => {
+    const ks = Object.keys(r); const sig = ks.join('|');
+    if (!memo[sig]) {
+      const nk = ks.map(nh); let ack = null;
+      for (const c of MRM_ACK_CANDS) { const i = nk.indexOf(nh(c)); if (i >= 0) { ack = ks[i]; break; } }
+      if (!ack) { const j = nk.findIndex(n => n.indexOf('ack') === 0 && (n.includes('no') || n.includes('num'))); if (j >= 0) ack = ks[j]; }
+      memo[sig] = {
+        st: findKey(ks, [/^police\s*station\s*name$/i, /police\s*station/i]), status: findKey(ks, [/^status$/i, /^current\s*status$/i, /status/i]),
+        amt: findKey(ks, [/^restorable\s*amount$/i, /^restorable\s*amt/i]), ack,
+        bank: findKey(ks, [/^beneficiary\s*bank$/i, /^bank\s*name$/i]), upd: findKey(ks, [/^restorable\s*amount\s*updated\s*on$/i, /updated\s*on/i])
+      };
+    }
+    return memo[sig];
+  };
+  const rows = []; const seen = new Set();
+  files.forEach(f => f.rows.forEach(r => { const k = keysOf(r); if (!k.st || !String(r[k.st] ?? '').trim()) return; const j = JSON.stringify(r); if (seen.has(j)) return; seen.add(j); rows.push(r); }));
+  if (!rows.length) throw new Error('No MRM rows found — the export needs "Police Station Name" and "Status" columns (sheet "I4C").');
+  const statusCounts = {}; const map = {};
+  const info = rows.map(r => {
+    const k = keysOf(r);
+    const st = k.status && String(r[k.status] ?? '').trim() ? String(r[k.status]).trim() : '(Blank)';
+    statusCounts[st] = (statusCounts[st] || 0) + 1;
+    const cat = map[st] || (map[st] = savedMap[st] || mrmGuess(st));
+    return { r, k, cat, station: String(r[k.st]).trim(), amt: k.amt ? num(r[k.amt]) : 0, ack: k.ack ? mrmNormAck(r[k.ack]) : '' };
+  });
+  const by = {}; const vrrAcks = {}; const vrrAll = new Set();
+  info.forEach(x => {
+    const o = by[x.station] || (by[x.station] = { total: 0, vrr: 0, vrrAck: 0, vc: 0, vp: 0, pas: 0, orb: 0, pab: 0, bc: 0, bp: 0, rnc: 0, rc: 0, ar: 0, amt: 0, amtRes: 0 });
+    o.total++; o[MRM_CATKEY[x.cat]]++; o.amt += x.amt;
+    if (x.cat === 'Restoration Completed' || x.cat === 'Already Refunded') o.amtRes += x.amt;
+    if (x.cat === 'Victim Requests Remains' && x.ack) { (vrrAcks[x.station] = vrrAcks[x.station] || new Set()).add(x.ack); vrrAll.add(x.ack); }
+  });
+  const mKey = {}; Object.keys(manual || {}).forEach(n => { mKey[normKey(n)] = manual[n]; });
+  let manualMatched = 0;
+  Object.keys(by).forEach(n => {
+    const o = by[n]; o.vrrAck = vrrAcks[n] ? vrrAcks[n].size : 0;
+    const m = (manual || {})[n] || mKey[normKey(n)];
+    if (m) { o.vc = m.vc || 0; o.vp = m.vp || 0; o.bc = m.bc || 0; o.bp = m.bp || 0; manualMatched++; }
+  });
+  const stations = Object.keys(by).sort().map(n => ({ name: n, v: by[n] }));
+  const grand = stations.reduce((g, s) => { Object.keys(s.v).forEach(k => g[k] = (g[k] || 0) + s.v[k]); return g; }, {});
+  grand.vrrAck = vrrAll.size;
+  return { stations, statusCounts, map, rowCount: rows.length, totalsOverride: { vrrAck: vrrAll.size }, manualMatched, report: mrmReport(info, stations, grand, files.length) };
+}
+// Port of the MRM Abstract Generator's overview cards, key points and bank-wise pending table.
+function mrmReport(info, stations, g, fileCount) {
+  const isPend = x => x.cat === 'Victim Requests Remains' || x.cat === 'Pending at Stations';
+  const isRes = x => x.cat === 'Restoration Completed' || x.cat === 'Already Refunded';
+  const needsCourt = x => x.amt > MRM_COURT;
+  const top = (o, n = 5) => Object.keys(o).map(k => [k, o[k]]).sort((a, b) => b[1] - a[1]).slice(0, n);
+  const distinct = arr => new Set(arr.map(x => x.ack).filter(Boolean)).size;
+  const ackMap = {};
+  info.forEach(x => { if (!x.ack) return; const a = ackMap[x.ack] || (ackMap[x.ack] = { rows: [], stations: {} }); a.rows.push(x); a.stations[x.station] = true; });
+  const acks = Object.keys(ackMap);
+  const ackTagged = acks.reduce((s, a) => s + ackMap[a].rows.length, 0);
+  const courtReq = info.filter(needsCourt);
+  const affected = acks.filter(a => ackMap[a].rows.some(needsCourt));
+  const awaiting = []; affected.forEach(a => ackMap[a].rows.forEach(x => { if (isPend(x)) awaiting.push(x); }));
+  const awaitingBy = {}; awaiting.forEach(x => awaitingBy[x.station] = (awaitingBy[x.station] || 0) + 1);
+  const other = []; affected.forEach(a => ackMap[a].rows.forEach(x => { if (!needsCourt(x) && !isRes(x)) other.push(x); }));
+  const otherBy = {}; other.forEach(x => otherBy[x.station] = (otherBy[x.station] || 0) + 1);
+  const completed = acks.filter(a => ackMap[a].rows.every(isRes));
+  const completedBy = {}; completed.forEach(a => Object.keys(ackMap[a].stations).forEach(s => completedBy[s] = (completedBy[s] || 0) + 1));
+  const anyRes = acks.filter(a => ackMap[a].rows.some(isRes));
+  let anyResAmt = 0; anyRes.forEach(a => ackMap[a].rows.forEach(x => { if (isRes(x)) anyResAmt += x.amt; }));
+  const A = { total: info.length, acks: acks.length, courtN: courtReq.length, courtAck: distinct(courtReq), courtAmt: courtReq.reduce((s, x) => s + x.amt, 0), awaitN: awaiting.length, awaitAck: distinct(awaiting) };
+  const overview = [
+    { label: 'Total Records', value: fmtN(info.length), c: 'navy' },
+    { label: 'Stations Covered', value: fmtN(stations.length), c: 'navy' },
+    { label: 'Acknowledgement Numbers (Counted)', value: fmtN(acks.length), c: 'navy' },
+    { label: 'Restoration Completed (Ack)', value: fmtN(completed.length) + ' / ' + fmtN(acks.length), c: 'green' },
+    { label: 'Victim Requests Remains', value: fmtN(g.vrr), c: 'amber' },
+    { label: 'Pending at Bank', value: fmtN(g.pab), c: 'amber' },
+    { label: 'Pending at Police Station', value: fmtN(g.vrr + g.pas), c: 'red' },
+    { label: 'Total Amount Reported', value: fmtMoney(g.amt), c: 'amber' },
+    { label: 'Total Amount Restored', value: fmtMoney(g.amtRes), c: 'green' },
+    { label: 'Overall Restoration %', value: mrmPctRestored(g).toFixed(1) + '%', c: 'green' },
+    { label: 'Court Order Required (>50,000) — Requests / Acks', value: fmtN(A.courtN) + ' / ' + fmtN(A.courtAck), c: 'red' },
+    { label: 'Awaiting Court Order — Requests / Acks', value: fmtN(A.awaitN) + ' / ' + fmtN(A.awaitAck), c: 'red' }
+  ];
+  const kp = [];
+  const eligible = stations.filter(s => s.v.total > 0);
+  if (eligible.length) {
+    if (A.courtN > 0) kp.push({ cls: 'kp-worst', icon: '⚖️', label: 'Court order required for restoration:', text: `${fmtN(A.courtN)} of ${fmtN(A.total)} restorable requests (by Request ID), linked to ${fmtN(A.courtAck)} acknowledgement number(s), have a restorable amount above ₹50,000 (${fmtMoney(A.courtAmt)} in total) — a court order is required before these can be restored. Police pendency on these will decrease only after the court order is received. ${fmtN(A.awaitN)} request(s) (${fmtN(A.awaitAck)} acknowledgement number(s)) are still awaiting the order.` });
+    const aw = top(awaitingBy); if (aw.length) kp.push({ cls: 'kp-worst', icon: '🏢', label: 'Stations awaiting a court order (requests pending):', text: aw.map(e => e[0] + ': ' + fmtN(e[1])).join(' · ') });
+    if (other.length) kp.push({ cls: 'kp-info', icon: '🔗', label: 'Other requests held up by the same acknowledgement:', text: `${fmtN(affected.length)} acknowledgement number(s) have other linked Request ID(s) where at least one request needs a court order; as a result ${fmtN(other.length)} request(s) in total under those acknowledgements remain pending until the order is received.` });
+    const ob = top(otherBy); if (ob.length) kp.push({ cls: 'kp-info', icon: '🏢', label: 'Stations with requests pending due to a linked acknowledgement:', text: ob.map(e => e[0] + ': ' + fmtN(e[1])).join(' · ') });
+    kp.push({ cls: 'kp-info', icon: '🧾', label: 'Total Acknowledgement Numbers:', text: `${fmtN(acks.length)} distinct acknowledgement number(s) across ${fmtN(ackTagged)} restorable requests (counted by Request ID, not by acknowledgement).` });
+    kp.push({ cls: 'kp-best', icon: '✔️', label: 'Restoration Completed Acknowledgement Numbers:', text: `${fmtN(completed.length)} of ${fmtN(acks.length)} acknowledgement number(s) have every linked request fully restored/refunded, with no leg still pending.` });
+    const cb = top(completedBy); if (cb.length) kp.push({ cls: 'kp-best', icon: '🏢', label: 'Restoration Completed Acknowledgement Numbers — by station:', text: cb.map(e => e[0] + ': ' + fmtN(e[1])).join(' · ') });
+    kp.push({ cls: 'kp-best', icon: '💰', label: 'Acknowledgements with Amount Restored:', text: `${fmtN(anyRes.length)} of ${fmtN(acks.length)} acknowledgement number(s) have had the amount restored or refunded on at least one linked request so far (${fmtMoney(anyResAmt)} restored in total across those legs), even where other requests under the same acknowledgement are still pending.` });
+    const byR = eligible.slice().sort((a, b) => mrmPctRestored(b.v) - mrmPctRestored(a.v)), best = byR[0], worst = byR[byR.length - 1];
+    const byP = eligible.slice().sort((a, b) => mrmPctPendStation(b.v) - mrmPctPendStation(a.v)), wp = byP[0], bp = byP[byP.length - 1];
+    kp.push(
+      { cls: 'kp-worst', icon: '⚠️', label: 'Worst restoration performance:', text: `${worst.name} — only ${mrmPctRestored(worst.v).toFixed(1)}% of ${fmtN(worst.v.total)} cases restored so far.` },
+      { cls: 'kp-best', icon: '✅', label: 'Best restoration performance:', text: `${best.name} — ${mrmPctRestored(best.v).toFixed(1)}% of ${fmtN(best.v.total)} cases restored.` },
+      { cls: 'kp-worst', icon: '🚨', label: 'Highest pendency at station:', text: `${wp.name} — ${mrmPctPendStation(wp.v).toFixed(1)}% of cases still pending at the station level (Victim Requests Remains + Pending at Stations), needs urgent follow-up.` },
+      { cls: 'kp-best', icon: '👍', label: 'Lowest pendency at station:', text: `${bp.name} — only ${mrmPctPendStation(bp.v).toFixed(1)}% of cases pending at station level.` },
+      { cls: 'kp-info', icon: '📊', label: 'Overall picture:', text: `Across ${fmtN(eligible.length)} stations, ${mrmPctRestored(g).toFixed(1)}% of cases have been restored overall, while ${mrmPctPendStation(g).toFixed(1)}% of cases remain pending at the station level.` }
+    );
+  }
+  // Bank-wise "Pending at Bank" by month of "Restorable Amount updated on" (DD/MM/YYYY).
+  // MAR–DEC become month columns as data arrives; JAN/FEB and missing dates go to (NO DATE).
+  const bankData = {}, monthSet = {};
+  info.forEach(x => {
+    if (x.cat !== 'Pending at Bank') return;
+    const bank = String((x.k.bank && x.r[x.k.bank]) || x.r['Bank Name'] || '').trim() || '(Unknown Bank)';
+    let mName = '(NO DATE)', mi = 999;
+    const raw = x.k.upd ? x.r[x.k.upd] : '';
+    if (raw !== '' && raw != null) {
+      let m = -1;
+      if (typeof raw === 'number') { const d = new Date(Math.round((raw - 25569) * 864e5)); m = d.getUTCMonth(); }
+      else { const p = String(raw).trim().split(/[\/\-.]/); if (p.length >= 2) m = parseInt(p[1], 10) - 1; }
+      if (m >= 2 && m <= 11) { mName = MRM_MONTHS[m]; mi = m; }
+    }
+    monthSet[mName] = mi;
+    const b = bankData[bank] || (bankData[bank] = {}); b[mName] = (b[mName] || 0) + 1;
+  });
+  const months = Object.keys(monthSet).sort((a, b) => monthSet[a] - monthSet[b]);
+  const bTot = b => months.reduce((s, m) => s + (bankData[b][m] || 0), 0);
+  const banks = Object.keys(bankData).sort((a, b) => bTot(b) - bTot(a));
+  return { overview, keyPoints: kp, bank: { banks, months, data: bankData }, fileCount, insightTotals: { rc: g.rc, total: g.total, pab: g.pab, pas: g.pas } };
+}
+
+/* ---------------- GRM ---------------- */
+function guessCol(headers, cands, optional) {
+  for (const c of cands) { const h = headers.find(n => n.toLowerCase().trim() === c); if (h) return h; }
+  for (const c of cands) { const h = headers.find(n => n.toLowerCase().includes(c)); if (h) return h; }
+  return optional ? '' : (headers[0] || '');
+}
+function parseExcelDate(val) {
+  if (val === undefined || val === null || val === '') return null;
+  if (val instanceof Date) return isNaN(val) ? null : val;
+  if (typeof val === 'number') { const d = new Date(Math.round((val - 25569) * 864e5)); return isNaN(d) ? null : new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()); }
+  const s = String(val).trim();
+  let m = s.match(/^(\d{1,2})[.\-\/](\d{1,2})[.\-\/](\d{2,4})/);
+  if (m) { let y = +m[3]; if (y < 100) y += 2000; const d = new Date(y, +m[2] - 1, +m[1]); return isNaN(d) ? null : d; }
+  m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (m) return new Date(+m[1], +m[2] - 1, +m[3]);
+  return null;
+}
+function parseGRM(rows, o) {
+  const pend = String(o.pendingRoles || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+  const bank = String(o.bankRoles || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+  const role = v => { const s = String(v ?? '').trim(); if (!s) return ''; const i = s.indexOf(','); return (i < 0 ? s : s.slice(0, i)).trim().toLowerCase(); };
+  const cls = r => !r ? 'closed' : pend.includes(r) ? 'pending' : bank.includes(r) ? 'bank' : 'closed';
+  const now = new Date(); const sop = Number(o.sop) || 75;
+  const by = {}; const roles = {};
+  rows.forEach(r => {
+    const name = String(r[o.groupCol] ?? '').trim() || '(blank)';
+    const b = by[name] || (by[name] = { total: 0, pending: 0, bank: 0, closed: 0, overdue: 0 });
+    const rl = role(r[o.statusCol]); const c = cls(rl);
+    roles[rl || '(blank)'] = roles[rl || '(blank)'] || { n: 0, c }; roles[rl || '(blank)'].n++;
+    b.total++; b[c]++;
+    if (c === 'pending' && o.dateCol) { const d = parseExcelDate(r[o.dateCol]); if (d && Math.round((now - d) / 864e5) > sop) b.overdue++; }
+  });
+  const stations = Object.keys(by).map(n => ({ name: n, v: by[n] })).sort((a, b) => (b.v.pending / (b.v.total || 1)) - (a.v.pending / (a.v.total || 1)) || b.v.total - a.v.total);
+  if (!stations.length) throw new Error('No GRM rows found.');
+  return { stations, roles };
+}
+
+/* ---------------- CEIR ---------------- */
+function parseCEIR(aoa) {
+  const out = []; const seen = new Set();
+  for (const r of aoa) {
+    if (!r || !r.length) continue;
+    const name = String(r[0] ?? '').trim();
+    if (!name || isTotalName(name)) continue;
+    const numeric = [1, 2, 3, 4, 5, 6].some(i => r[i] !== '' && r[i] !== null && r[i] !== undefined && !isNaN(Number(r[i])));
+    if (!numeric) continue; // title / header row
+    const rid = String(r[9] ?? '').trim();
+    if (rid) { if (seen.has(rid)) continue; seen.add(rid); }
+    out.push({ name, v: { block: num(r[1]), unrecBlocked: num(r[2]), unblocked: num(r[3]), trace: num(r[4]), unrecTrace: num(r[5]), recovered: num(r[6]) } });
+  }
+  if (!out.length) throw new Error('No CEIR station rows found (expected the station-wise CEIR statistics sheet).');
+  return out;
+}
+
+/* ---------------- CIAR ---------------- */
+function parseCIARSheet(rows) {
+  const n = s => String(s ?? '').trim().toLowerCase().replace(/\s+/g, ' ');
+  const out = [];
+  rows.forEach(r => {
+    const keys = Object.keys(r);
+    const nameKey = keys.find(k => n(k) === 'name') || keys.find(k => /station/i.test(k)) || keys[0];
+    const totalKey = keys.find(k => /^total/.test(n(k)));
+    const col = t => { const k = keys.find(x => n(x) === t); return k ? num(r[k]) : 0; };
+    const total = totalKey ? num(r[totalKey]) : 0, pending = col('pending'), underProcess = col('under process'), completed = col('completed');
+    let name = r[nameKey];
+    if (name === null || name === undefined || String(name).trim() === '') { if (!(total || pending || underProcess || completed)) return; name = 'STATION NOT SPECIFIED'; }
+    name = String(name).trim(); if (isTotalName(name)) return;
+    out.push({ name, v: { total, pending, underProcess, completed } });
+  });
+  return out;
+}
+
+/* ---------------- OCWC ---------------- */
+function parseOCWC(files) {
+  const byAck = new Map(); const noAck = []; let valid = 0;
+  files.forEach(f => {
+    if (!f.rows.length) return;
+    const ks = Object.keys(f.rows[0]).map(k => k.trim().toLowerCase());
+    if (!ks.some(k => k.includes('police station')) || !ks.some(k => k.includes('status'))) throw new Error(`"${f.name}" does not look like the OCWC "AllComplaint" export (needs Police Station and Status columns).`);
+    valid++;
+    f.rows.forEach(r => {
+      const o = {}; Object.keys(r).forEach(k => o[k.trim().toLowerCase()] = String(r[k] ?? '').trim());
+      const rec = { ack: o['acknowledgement no'] || o['acknowledgement number'] || o['ack no'] || '', ps: o['police station'] || '', status: o['status'] || '' };
+      if (!Object.values(o).some(Boolean)) return;
+      if (rec.ack) byAck.set(rec.ack, rec); else noAck.push(rec);
+    });
+  });
+  if (!valid) throw new Error('No readable OCWC rows.');
+  const all = [...byAck.values(), ...noAck];
+  const st = s => { const t = s.toLowerCase(); return t === 'closed' ? 'closed' : t === 'no action' ? 'noAction' : t === 'rejected' ? 'rejected' : t === 'under process' ? 'underProcess' : 'other'; };
+  const by = {};
+  all.forEach(r => { const name = r.ps || 'DCRB / Unassigned'; const b = by[name] || (by[name] = { total: 0, closed: 0, noAction: 0, rejected: 0, underProcess: 0, other: 0 }); b.total++; b[st(r.status)]++; });
+  return { stations: Object.keys(by).map(n => ({ name: n, v: by[n] })).sort((a, b) => b.v.total - a.v.total), unique: all.length };
+}
+
+/* ---------------- Sahayog ---------------- */
+const SAHAYOG_MASTER = ['Elamakkara', 'Mulavukad', 'Maradu PS', 'Fortkochi', 'Ambalamedu', 'Mattancherry', 'ET North', 'Palluruthy', 'ET South', 'Cybercrime PS', 'Traffic West', 'Metro PS', 'Infopark', 'Kannamaly', 'Hillpalace', 'Thoppumpady', 'Cheranalloor', 'Central PS', 'Traffic East', 'Vanitha', 'Kadavanthra', 'Thrikkakara', 'Panangad', 'Udayamperoor', 'Eloor', 'Harbour PS', 'Kalamassery PS', 'Coastal PS', 'Palarivattom PS'];
+function sahayogStationRows(aoa) {
+  const out = [];
+  for (const row of aoa || []) {
+    if (!row || row.length < 3) continue;
+    const nums = [];
+    for (let i = row.length - 1; i >= 0 && nums.length < 5; i--) { const v = row[i]; if (v === undefined || v === null || v === '') continue; const n = Number(v); if (!isNaN(n) && typeof v !== 'boolean') nums.unshift(n); else break; }
+    if (nums.length !== 5) continue;
+    let name = null; for (const v of row) { if (typeof v === 'string' && v.trim() && isNaN(Number(v))) { name = v.trim(); break; } }
+    if (!name || isTotalName(name) || (/requesting/i.test(name) && /station/i.test(name))) continue;
+    out.push([name, ...nums]);
+  }
+  return out;
+}
+function parseSahayogAOA(aoa) {
+  let hi = -1, c = null;
+  for (let i = 0; i < Math.min(aoa.length, 12); i++) {
+    const row = (aoa[i] || []).map(x => String(x ?? '').toLowerCase().trim());
+    const rf = row.findIndex(x => x.includes('request from')); const st = row.findIndex(x => x.includes('current status') || x === 'status');
+    if (rf >= 0 && st >= 0) { hi = i; c = { rf, st }; break; }
+  }
+  if (hi < 0) return { mode: 'Station-wise table', rows: sahayogStationRows(aoa) };
+  const agg = new Map();
+  aoa.slice(hi + 1).forEach(r => {
+    if (!r) return; const from = String(r[c.rf] ?? '').trim(); if (!from) return;
+    const seg = from.split('/').map(s => s.trim()).filter(Boolean).pop() || from;
+    const s = String(r[c.st] ?? '').toLowerCase();
+    const k = (s.includes('removed') || s.includes('disabled')) ? 'removed' : s.includes('unable') ? 'unable' : s.includes('additional') ? 'addl' : 'pending';
+    const o = agg.get(seg) || { total: 0, removed: 0, unable: 0, addl: 0, pending: 0 }; o.total++; o[k]++; agg.set(seg, o);
+  });
+  return { mode: 'Request-level export', rows: [...agg].map(([n, v]) => [n, v.total, v.removed, v.unable, v.addl, v.pending]) };
+}
+function parseSahayogLines(lines) {
+  const re = /^(\d{1,3})\s+([A-Za-z][A-Za-z .]*?)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s*$/;
+  const out = [];
+  lines.forEach(l => { const m = l.match(re); if (m && !isTotalName(m[2])) out.push([m[2].trim(), +m[3], +m[4], +m[5], +m[6], +m[7]]); });
+  return { mode: 'PDF report', rows: out };
+}
+function sahKey(n) { return String(n).toLowerCase().replace(/police\s*station|\bps\b/g, '').replace(/[^a-z]/g, ''); }
+function sahayogMerge(rows) {
+  const list = SAHAYOG_MASTER.map(n => ({ name: n, v: { total: 0, removed: 0, unable: 0, addl: 0, pending: 0 } }));
+  const match = name => { const k = sahKey(name); if (!k) return null; let hit = list.find(s => sahKey(s.name) === k); if (hit) return hit; hit = list.find(s => { const m = sahKey(s.name); return m.length >= 5 && k.length >= 5 && (k.includes(m) || m.includes(k)); }); return hit || null; };
+  rows.forEach(([name, total, removed, unable, addl, pending]) => {
+    let s = match(name); if (!s) { s = { name, v: { total: 0, removed: 0, unable: 0, addl: 0, pending: 0 } }; list.push(s); }
+    s.v.total += total; s.v.removed += removed; s.v.unable += unable; s.v.addl += addl; s.v.pending += pending;
+  });
+  return list;
+}
+
+/* ---------------- REGISTRY ---------------- */
+const PORTALS = [
+  {
+    id: 'NCRP', full: 'National Cybercrime Reporting Portal', tag: 'Petition disposal abstract — closed includes FIR registered', color: '#00e5ff', icon: 'shield',
+    accept: '.csv,.xlsx,.xls', multi: false, hint: 'NCRP dashboard export (CSV / Excel): Police Station, Total Complaint Registered, Rejected, Withdrawn, Closed, No Action, Under Process, Pending, FIR Registered, Re Open.',
+    sections: [{ id: 'main', label: 'NCRP Petitions', cols: [{ k: 'registered', l: 'Total Registered' }, { k: 'closed', l: 'Closed (incl. FIR)' }, { k: 'pending', l: 'Pending' }, { k: 'fir', l: 'FIR Registered' }, { k: 'reopen', l: 'Re Open' }], R: 'registered', C: ['closed'], P: ['pending'], tiers: [75, 40], rl: 'Registered', cl: 'Closed (incl. FIR)', pl: 'Pending' }],
+    async load(files) { const wb = await readWorkbook(files[0]); return { aoa: sheetAOA(wb.Sheets[wb.SheetNames[0]]) }; },
+    build(c) { return { sections: { main: parseNCRP(c.aoa) } }; }
+  },
+  {
+    id: 'MRM', full: 'Money Restoration Mechanism', tag: 'Station-wise restoration abstract — station / bank pendency, court orders, bank-wise pending', color: '#00ff9d', icon: 'rupee',
+    accept: '.xlsx,.xls', multi: true, hint: 'MRM raw export(s) — sheet "I4C" with Police Station Name, Status, Restorable Amount, Acknowledgement No., Beneficiary Bank, Restorable Amount updated on. Several files are merged and exact duplicate rows removed.',
+    sections: [{
+      id: 'main', label: 'MRM Restoration',
+      cols: [{ k: 'total', l: 'No. of Restorable' }, { k: 'vrr', l: 'Victim Requests Remains*', pair: 'vrrAck' }, { k: 'vc', l: 'Victims Contacted' }, { k: 'vp', l: 'Victims Pending' }, { k: 'pas', l: 'Pending at Stations' }, { k: 'orb', l: 'Order Refer Back' }, { k: 'pab', l: 'Pending at Bank' }, { k: 'bc', l: 'Bank Contacted' }, { k: 'bp', l: 'Bank Pending' }, { k: 'rnc', l: 'Restoration not Complied' }, { k: 'rc', l: 'Restoration Completed' }, { k: 'ar', l: 'Already Refunded' },
+        { k: 'vrrAck', l: 'Victims (Ack) Remaining', hide: 1 }, { k: 'amt', l: 'Total Amount Reported', money: 1, hide: 1 }, { k: 'amtRes', l: 'Total Amount Restored', money: 1, hide: 1 }],
+      calc: [{ k: '__police', l: 'Completion % (Police)', fn: mrmPctPolice }],
+      R: 'total', C: ['rc'], P: ['vrr', 'pas', 'orb', 'pab', 'rnc'], tiers: [60, 20], rl: 'Restorable requests', cl: 'Restoration completed', pl: 'Pending (all stages)', pctl: 'Restoration %'
+    }],
+    async load(files) { const out = []; for (const f of files) { const wb = await readWorkbook(f, { cellDates: false }); const sn = wb.SheetNames.includes('I4C') ? 'I4C' : wb.SheetNames[0]; out.push({ name: f.name, rows: sheetRows(wb.Sheets[sn]) }); } return { files: out }; },
+    build(c, o) {
+      const man = (typeof PS !== 'undefined' && PS.MRM && PS.MRM.manual) || {};
+      const r = parseMRM(c.files, Vault.settings.mrmMap || {}, man);
+      return { sections: { main: r.stations }, totalsOverride: { main: r.totalsOverride }, extras: { statusCounts: r.statusCounts, map: r.map, manualMatched: r.manualMatched }, report: r.report, meta: { rows: r.rowCount, jurisdiction: o.jurisdiction || '', manual: Object.keys(man).length ? r.manualMatched : 0 } };
+    }
+  },
+  {
+    id: 'GRM', full: 'Grievance Redressal Module', tag: 'Grievances pending with IO / GRO, sent to bank and closed', color: '#ffb300', icon: 'bank',
+    accept: '.xlsx,.xls', multi: true, hint: 'GRM grievance-detail export(s) — one row per grievance with Police Station and "Currently at" columns (District GRO dashboard → NCRP Acknowledgement Nos. → Excel).',
+    sections: [{ id: 'main', label: 'GRM Grievances', cols: [{ k: 'total', l: 'Total Request' }, { k: 'pending', l: 'Pending (IO / GRO)' }, { k: 'bank', l: 'Sent to Bank' }, { k: 'closed', l: 'Closed' }, { k: 'overdue', l: 'Pending > SOP days' }], R: 'total', C: ['bank', 'closed'], P: ['pending'], tiers: [90, 70], rl: 'Total requests', cl: 'Completed (bank + closed)', pl: 'Pending with police' }],
+    async load(files) { const rows = []; const headers = []; for (const f of files) { const wb = await readWorkbook(f); const r = sheetRows(wb.Sheets[wb.SheetNames[0]]); r.forEach(x => rows.push(x)); if (r[0]) Object.keys(r[0]).forEach(h => { if (!headers.includes(h)) headers.push(h); }); } return { rows, headers }; },
+    build(c, o) { const r = parseGRM(c.rows, o); Vault.settings.grm = { pendingRoles: o.pendingRoles, bankRoles: o.bankRoles, sop: o.sop }; return { sections: { main: r.stations }, extras: { roles: r.roles }, meta: { groupCol: o.groupCol, statusCol: o.statusCol, sop: o.sop } }; }
+  },
+  {
+    id: 'CEIR', full: 'Central Equipment Identity Register', tag: 'Lost / stolen mobiles — block requests, traceability and recovery', color: '#b388ff', icon: 'phone',
+    accept: '.xlsx,.xls,.csv', multi: false, hint: 'CEIR station-wise statistics export (first column Police Station, then Total Block Requests, Unrecovered Blocked, Unblocked, Traceability Generated, Unrecovered Traceable, Recovered).',
+    sections: [{ id: 'main', label: 'CEIR Traceability', cols: [{ k: 'block', l: 'Block Requests' }, { k: 'unrecBlocked', l: 'Unrecovered Blocked' }, { k: 'unblocked', l: 'Unblocked' }, { k: 'trace', l: 'Traceability Generated' }, { k: 'unrecTrace', l: 'Unrecovered Traceable' }, { k: 'recovered', l: 'Recovered' }], R: 'block', C: ['recovered'], P: ['unrecTrace'], pct: [['recovered'], ['trace']], tiers: [40, 25], rl: 'Block requests', cl: 'Recovered', pl: 'Unrecovered traceable', pctl: 'Recovery % (of traced)' }],
+    async load(files) { const wb = await readWorkbook(files[0], { raw: true }); return { aoa: sheetAOA(wb.Sheets[wb.SheetNames[0]]) }; },
+    build(c) { return { sections: { main: parseCEIR(c.aoa) } }; }
+  },
+  {
+    id: 'CIAR', full: 'Cyber Intelligence & Analytics Requests', tag: 'CIAR requests received by and sent from the district', color: '#2979ff', icon: 'radar',
+    accept: '.xlsx,.xls', multi: false, hint: 'CIAR portal workbook with a "Request Received" sheet and a "CIAR Request Sent" sheet.',
+    sections: [
+      { id: 'received', label: 'CIAR Requests Received', cols: [{ k: 'total', l: 'Total Received' }, { k: 'pending', l: 'Pending' }, { k: 'underProcess', l: 'Under Process' }, { k: 'completed', l: 'Completed' }], R: 'total', C: ['completed'], P: ['pending', 'underProcess'], tiers: [90, 70], rl: 'Received', cl: 'Completed', pl: 'Pending + under process' },
+      { id: 'sent', label: 'CIAR Requests Sent', cols: [{ k: 'total', l: 'Total Sent' }, { k: 'pending', l: 'Pending' }, { k: 'underProcess', l: 'Under Process' }, { k: 'completed', l: 'Completed' }], R: 'total', C: ['completed'], P: ['pending', 'underProcess'], tiers: [90, 70], rl: 'Sent', cl: 'Completed', pl: 'Pending + under process' }
+    ],
+    async load(files) {
+      const wb = await readWorkbook(files[0]);
+      const rec = wb.SheetNames.find(n => /receiv/i.test(n)), sent = wb.SheetNames.find(n => /sent/i.test(n));
+      if (!rec && !sent) throw new Error('No "Request Received" or "CIAR Request Sent" sheet found in this workbook.');
+      const rows = n => XLSX.utils.sheet_to_json(wb.Sheets[n], { defval: null, raw: true });
+      return { received: rec ? rows(rec) : null, sent: sent ? rows(sent) : null };
+    },
+    build(c) { const s = {}; if (c.received) s.received = parseCIARSheet(c.received); if (c.sent) s.sent = parseCIARSheet(c.sent); return { sections: s }; }
+  },
+  {
+    id: 'OCWC', full: 'Online Complaint Workflow (OCWC) Petitions', tag: 'Daily station-wise status of OCWC petitions', color: '#ff6e40', icon: 'doc',
+    accept: '.csv,.xlsx,.xls', multi: true, hint: '"AllComplaint" CSV export(s) — several files are merged and de-duplicated by Acknowledgement No. (later file wins).',
+    sections: [{ id: 'main', label: 'OCWC Petitions', cols: [{ k: 'total', l: 'Total Petitions' }, { k: 'closed', l: 'Closed' }, { k: 'noAction', l: 'No Action' }, { k: 'rejected', l: 'Rejected' }, { k: 'underProcess', l: 'Under Process' }, { k: 'other', l: 'Other' }], R: 'total', C: ['closed'], P: ['underProcess', 'noAction', 'other'], tiers: [90, 70], rl: 'Total petitions', cl: 'Closed', pl: 'Pending (UP + NA + other)' }],
+    async load(files) { const out = []; for (const f of files) { const wb = await readWorkbook(f); out.push({ name: f.name, rows: sheetRows(wb.Sheets[wb.SheetNames[0]], false) }); } return { files: out }; },
+    build(c) { const r = parseOCWC(c.files); return { sections: { main: r.stations }, meta: { unique: r.unique } }; }
+  },
+  {
+    id: 'SAHAYOG', short: 'Sahayog', full: 'Sahayog — Content Removal Portal', tag: 'URL takedown requests to intermediaries — work done = increase in requests', color: '#ff2e88', icon: 'link',
+    accept: '.csv,.xlsx,.xls,.pdf', multi: false, hint: 'Sahayog request-level CSV (Acknowledgment No., Request From, Current Status) or the station-wise table / Sahayog PDF report. All 29 Kochi City stations are always listed.',
+    sections: [{ id: 'main', label: 'Sahayog URL Requests', cols: [{ k: 'total', l: 'Total URLs' }, { k: 'removed', l: 'Removed / Disabled' }, { k: 'unable', l: 'Unable to Comply' }, { k: 'addl', l: 'Addl. Info Req.' }, { k: 'pending', l: 'Pending' }], R: 'total', C: ['removed', 'unable'], P: ['addl', 'pending'], pct: [['removed'], ['total']], work: 'R', tiers: [75, 50], rl: 'URL requests', cl: 'Removed + unable', pl: 'Pending + addl. info', pctl: 'Removed %' }],
+    async load(files) {
+      const f = files[0];
+      if (/\.pdf$/i.test(f.name)) return { parsed: parseSahayogLines(await readPdfLines(f)) };
+      const wb = await readWorkbook(f); return { parsed: parseSahayogAOA(sheetAOA(wb.Sheets[wb.SheetNames[0]])) };
+    },
+    build(c, o) {
+      if (!c.parsed.rows.length) throw new Error('No station rows could be recognised in this Sahayog file.');
+      Vault.settings.sahayog = { city: o.city, from: o.from };
+      return { sections: { main: sahayogMerge(c.parsed.rows) }, meta: { mode: c.parsed.mode, city: o.city, from: o.from, to: o.to } };
+    }
+  }
+];
+PORTALS.forEach(p => { p.short = p.short || p.id; });
+const P_BY = Object.fromEntries(PORTALS.map(p => [p.id, p]));
+
+/* =====================================================================
+   MRM tab — same report structure as the MRM Abstract Generator:
+   Overview (12 cards, edit/remove) → Station-wise abstract (15 columns)
+   → Bank-wise pending (month-wise) → Key Points (edit/remove)
+   ===================================================================== */
+const MRM_CARD_COL = { navy: 'var(--cyan)', green: 'var(--green)', amber: 'var(--amber)', red: 'var(--red)' };
+
+function wireMRMManual(p, st) {
+  st.manual = {};
+  const tpl = $('#mrmTpl'), up = $('#mrmMan'), msg = $('#mrmManMsg');
+  const say = (t, k) => { msg.textContent = t; msg.className = 'msg ' + k; };
+  tpl.onclick = () => {
+    try {
+      needLib('XLSX');
+      const sec = st.current && st.current.sections.main; if (!sec) { say('Process the raw MRM file first.', 'err'); return; }
+      const aoa = [['Police Station Name', 'Victims Contacted', 'Victims Pending', 'Bank Contacted', 'Bank Pending']].concat(sec.stations.map(s => [s.name, '', '', '', '']));
+      const ws = XLSX.utils.aoa_to_sheet(aoa); ws['!cols'] = [{ wch: 25 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 18 }];
+      const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Manual Data');
+      XLSX.writeFile(wb, 'MRM_Manual_Data_Template_' + dmy(isoToday()) + '.xlsx');
+      say('✅ Template downloaded. Fill in the 4 columns and upload it back.', 'ok');
+    } catch (e) { say('Could not create template: ' + e.message, 'err'); }
+  };
+  $('#mrmManBtn').onclick = () => up.click();
+  up.onchange = async () => {
+    const f = up.files[0]; up.value = ''; if (!f) return;
+    try {
+      const wb = await readWorkbook(f); const rows = sheetRows(wb.Sheets[wb.SheetNames[0]]);
+      const m = {};
+      rows.forEach(r0 => {
+        const r = {}; Object.keys(r0).forEach(k => r[String(k).replace(/\s+/g, ' ').trim()] = r0[k]);
+        const name = String(r['Police Station Name'] || r['Station Name'] || r['Station'] || '').trim(); if (!name) return;
+        const g = (...ks) => { for (const k of ks) if (r[k] !== undefined && r[k] !== '') return parseInt(num(r[k]), 10) || 0; return 0; };
+        m[name] = { vc: g('Victims Contacted', 'Victim Contacted'), vp: g('Victims Pending', 'Victim Pending'), bc: g('Bank Contacted'), bp: g('Bank Pending') };
+      });
+      const n = Object.keys(m).length;
+      if (!n) { say('⚠️ No valid rows — the file needs a "Police Station Name" column.', 'err'); return; }
+      st.manual = m;
+      if (st.cache) { rebuild(p); const mm = st.current.extras.manualMatched; say(`✅ Manual data loaded for ${n} station(s); ${mm} matched the raw data. Review, then save the snapshot.`, 'ok'); }
+      else say(`✅ Manual data loaded for ${n} station(s). It will be applied when you press PROCESS DATA.`, 'ok');
+    } catch (e) { say('❌ ' + e.message, 'err'); }
+  };
+}
+
+function mrmVisible(snap, st) {
+  const o = st.ovr || { ov: {}, kp: {} };
+  const ov = snap.report.overview.map((d, i) => { const x = o.ov[i] || {}; return { i, label: x.label ?? d.label, value: x.value ?? d.value, c: d.c, removed: !!x.removed }; }).filter(x => !x.removed);
+  const kp = snap.report.keyPoints.map((d, i) => { const x = o.kp[i] || {}; return { i, cls: d.cls, icon: d.icon, label: x.label ?? d.label, text: x.text ?? d.text, removed: !!x.removed }; }).filter(x => !x.removed);
+  const changed = Object.keys(o.ov).length + Object.keys(o.kp).length > 0;
+  return { ov, kp, changed };
+}
+function mrmBankCfg(bank) {
+  const cols = [{ k: 'name', l: 'Bank Name', f: 'name' }].concat(bank.months.map(m => ({ k: 'm_' + m, l: m.toUpperCase(), f: 'n' }))).concat([{ k: 'tot', l: 'Total', f: 'n' }]);
+  const tot = { name: 'TOTAL', tot: 0 };
+  const rows = bank.banks.map(b => { const r = { name: b, tot: 0 }; bank.months.forEach(m => { const v = bank.data[b][m] || 0; r['m_' + m] = v; r.tot += v; tot['m_' + m] = (tot['m_' + m] || 0) + v; tot.tot += v; }); return r; });
+  return { cols, rows, totals: tot };
+}
+function renderMRM(p, st, snap, box) {
+  const saved = !!st.viewingId, V = mrmVisible(snap, st), d = p.sections[0], sec = snap.sections.main;
+  const m = snap.meta || {};
+  let h = `<div class="glass res-bar" style="--pc:${p.color}"><span class="t">${saved ? '🔒 SAVED SNAPSHOT · ' + dmy(snap.date) : '◉ PREVIEW — NOT YET SAVED · DATA AS ON ' + dmy(snap.date)}</span><span class="sp"></span>
+    ${saved ? '' : `<button class="btn sm primary" data-act="save" style="--c:${p.color}">🔒 SAVE ENCRYPTED SNAPSHOT</button>`}
+    <button class="btn sm" data-act="pdf" style="--c:${p.color}">⬇ PDF</button><button class="btn sm" data-act="xlsx" style="--c:${p.color}">⬇ EXCEL</button></div>
+    <p class="tiny muted mono" style="margin:-6px 0 14px">${esc(['Combined from ' + (snap.files || []).length + ' file(s)', m.rows ? m.rows + ' raw rows' : '', m.manual ? 'Manual data: ' + m.manual + ' station(s)' : 'Manual data: not uploaded (0)', m.jurisdiction || ''].filter(Boolean).join(' · '))}</p>
+    <div class="sec" style="--pc:${p.color}"><h3 class="sec-t">Overview ${V.changed ? '<button class="btn sm ghost" data-mrm="reset" style="margin-left:auto">Reset removed/edited items</button>' : ''}</h3>
+      <p class="tiny muted" style="margin:-4px 0 10px">Use ✎ edit / ✕ remove on a card or key point to adjust it before exporting — the PDF and Excel follow what you see here.</p>
+      <div class="stats">${V.ov.map(o => `<div class="glass stat mrm-card" style="--sc:${MRM_CARD_COL[o.c]}"><span class="ia"><button data-mrm="ov-edit" data-i="${o.i}" title="Edit">✎</button><button data-mrm="ov-rm" data-i="${o.i}" title="Remove">✕</button></span><div class="n" style="font-size:19px">${esc(o.value)}</div><div class="l">${esc(o.label)}</div></div>`).join('')}</div>
+      <div class="notes" style="border-left-color:var(--cyan)"><b>Note:</b> ${esc(MRM_STATION_NOTE)}</div></div>
+    <div class="sec" style="--pc:${p.color}"><h3 class="sec-t">Station-wise MRM Abstract <span class="tiny muted" style="font-family:var(--fb);letter-spacing:0">MRM Report on ${dmy(snap.date)}</span></h3>
+      ${tableHTML(portalTableCfg(p, d, sec))}<p class="tiny muted" style="margin:8px 0 0">${esc(MRM_VICTIM_NOTE)}</p></div>`;
+  const bank = snap.report.bank;
+  if (bank && bank.banks.length) h += `<div class="sec" style="--pc:${p.color}"><h3 class="sec-t">Bank-wise Pending Details (Month-wise)</h3><p class="tiny muted" style="margin:-4px 0 10px">Count of "Pending at Bank" records by bank and month of "Restorable Amount updated on". MAR–DEC columns appear as data arrives; JAN/FEB and blank dates go to (NO DATE).</p>${tableHTML(mrmBankCfg(bank))}</div>`;
+  h += `<div class="sec" style="--pc:${p.color}"><h3 class="sec-t">Key Points</h3><ul class="kps">${V.kp.map(k => `<li class="${k.cls}"><span class="ic">${k.icon}</span><div><b>${esc(k.label)}</b> ${esc(k.text)}</div><span class="ia"><button data-mrm="kp-edit" data-i="${k.i}" title="Edit">✎</button><button data-mrm="kp-rm" data-i="${k.i}" title="Remove">✕</button></span></li>`).join('') || '<li class="kp-info"><div>No key points.</div></li>'}</ul></div>`;
+  box.innerHTML = h; fillTables(box);
+  box.onclick = async e => {
+    const b = e.target.closest('[data-mrm]'); if (!b) return; e.stopPropagation();
+    const a = b.dataset.mrm, i = Number(b.dataset.i); st.ovr = st.ovr || { ov: {}, kp: {} };
+    if (a === 'reset') st.ovr = { ov: {}, kp: {} };
+    else if (a === 'ov-rm') st.ovr.ov[i] = Object.assign({}, st.ovr.ov[i], { removed: true });
+    else if (a === 'kp-rm') st.ovr.kp[i] = Object.assign({}, st.ovr.kp[i], { removed: true });
+    else {
+      const isOv = a === 'ov-edit', cur = isOv ? V.ov.find(x => x.i === i) : V.kp.find(x => x.i === i);
+      const r = await modal({ title: isOv ? 'Edit overview card' : 'Edit key point', ok: 'Apply', html: `<label class="f">Label<input type="text" id="edL" value="${esc(cur.label)}"></label><label class="f">${isOv ? 'Value' : 'Text'}<textarea id="edV" rows="${isOv ? 1 : 5}">${esc(isOv ? cur.value : cur.text)}</textarea></label>`, validate: m => ({ label: $('#edL', m).value, val: $('#edV', m).value }) });
+      if (!r) return;
+      if (isOv) st.ovr.ov[i] = { label: r.label, value: r.val }; else st.ovr.kp[i] = { label: r.label, text: r.val };
+    }
+    if (st.viewingId) { const snap2 = Object.assign({}, snap, { ovr: JSON.parse(JSON.stringify(st.ovr)) }); await Vault.saveSnapshot(snap2); st.current = snap2; }
+    renderMRM(p, st, st.current, box);
+  };
+}
+
+/* ---------------- MRM exports (layout of the MRM Abstract Generator) ---------------- */
+function pdfSafe(s) { return String(s == null ? '' : s).replace(/\p{Extended_Pictographic}/gu, '').replace(/[‍️]/gu, '').replace(/₹/g, 'Rs. ').replace(/—/g, '-').replace(/\s+/g, ' ').trim(); }
+function mrmRows(snap) {
+  const sec = snap.sections.main, t = sec.totals;
+  const row = (name, v) => [name, fmtN(v.total), `${fmtN(v.vrr)} (${fmtN(v.vrrAck)})`, fmtN(v.vc), fmtN(v.vp), fmtN(v.pas), fmtN(v.orb), fmtN(v.pab), fmtN(v.bc), fmtN(v.bp), fmtN(v.rnc), fmtN(v.rc), fmtN(v.ar), mrmPctRestored(v).toFixed(1) + '%', mrmPctPolice(v).toFixed(1) + '%'];
+  return { body: sec.stations.map(s => row(s.name, s.v)), total: row('Total', t) };
+}
+const MRM_HEAD = ['Police Station', 'No. of Restorable', 'Victim Requests Remains*', 'Victims Contacted', 'Victims Pending', 'Pending at Stations', 'Order Refer Back', 'Pending at Bank', 'Bank Contacted', 'Bank Pending', 'Restoration not Complied', 'Restoration Completed', 'Already Refunded', 'Restoration %', 'Completion % (Police)'];
+async function exportMRM(p, snap, kind, g) {
+  const st = PS.MRM, V = mrmVisible(snap, st), m = snap.meta || {}, t = snap.sections.main.totals, R = mrmRows(snap), bank = snap.report.bank;
+  const dd = dmy(snap.date).replace(/-/g, '.');
+  try {
+    if (kind === 'pdf') {
+      const doc = newPdf(g.pdfPass), W = doc.internal.pageSize.getWidth(), mX = 12, cW = W - mX * 2;
+      const navy = [11, 37, 69], navy2 = [19, 49, 92], accent = [200, 149, 44], green = [30, 126, 52], red = [176, 42, 42], amber = [184, 134, 11], ink = [27, 36, 48], muted = [107, 118, 132], border = [223, 228, 234], rowAlt = [246, 248, 251];
+      const bgs = { navy: [232, 236, 248], green: [228, 246, 232], amber: [252, 242, 216], red: [251, 228, 228] }, fgs = { navy: navy2, green, amber, red };
+      let y = 16;
+      doc.setFont('times', 'bold'); doc.setFontSize(15); doc.setTextColor(...navy); doc.text('MRM Station-wise Restoration Abstract', mX, y);
+      doc.setFont('times', 'normal'); doc.setFontSize(8); doc.setTextColor(...accent);
+      doc.text('Report Date: ' + dd, W - mX, y - 4, { align: 'right' }); doc.text('Generated at ' + nowStamp().slice(11) + ' Hrs', W - mX, y + 1, { align: 'right' });
+      y += 5; doc.setFontSize(8.5); doc.setTextColor(...muted);
+      doc.text(pdfSafe('Money Restoration Mechanism · Combined from ' + (snap.files || []).length + ' file(s) · ' + ORG), mX, y);
+      y += 3.5; doc.setDrawColor(...navy); doc.setLineWidth(0.5); doc.line(mX, y, W - mX, y); doc.setLineWidth(0.15); doc.line(mX, y + 1, W - mX, y + 1);
+      let cy = y + 6;
+      const H = () => doc.internal.pageSize.getHeight();
+      const ensure = n => { if (cy + n > H() - 14) { doc.addPage(); cy = 16; } };
+      if (m.jurisdiction) { doc.setFont('times', 'bold'); doc.setFontSize(11); doc.setTextColor(...navy2); doc.text(pdfSafe(m.jurisdiction), mX, cy); cy += 5; }
+      if (V.ov.length) {
+        doc.setFont('times', 'bold'); doc.setFontSize(10); doc.setTextColor(...navy2); doc.text('OVERVIEW', mX, cy); cy += 4.5;
+        const per = 3, gap = 3, cwd = (cW - gap * (per - 1)) / per, ch = 19, rowsN = Math.ceil(V.ov.length / per);
+        ensure(rowsN * (ch + 3) + 2);
+        V.ov.forEach((o, i) => {
+          const x = mX + (i % per) * (cwd + gap), yy = cy + Math.floor(i / per) * (ch + 3), fg = fgs[o.c] || navy2;
+          doc.setDrawColor(...fg); doc.setLineWidth(0.35); doc.setFillColor(...(bgs[o.c] || bgs.navy)); doc.roundedRect(x, yy, cwd, ch, 1, 1, 'FD');
+          doc.setFont('times', 'bold'); doc.setFontSize(9.5); doc.setTextColor(...fg); doc.text(pdfSafe(o.value), x + cwd / 2, yy + 8.5, { align: 'center' });
+          doc.setFont('times', 'normal'); doc.setFontSize(5.4); doc.setTextColor(...ink); doc.text(doc.splitTextToSize(pdfSafe(String(o.label).toUpperCase()), cwd - 2), x + cwd / 2, yy + 13, { align: 'center' });
+        });
+        doc.setLineWidth(0.2); cy += rowsN * (ch + 3) + 3;
+        const it = snap.report.insightTotals, gp = it.total ? it.rc * 100 / it.total : 0;
+        const insight = gp >= 60 ? `Strong Restoration Progress: ${fmtN(it.rc)} of ${fmtN(it.total)} records (${gp.toFixed(1)}%) have completed restoration across ${snap.sections.main.stations.length} stations.`
+          : (it.pab + it.pas > it.total * 0.4) ? 'Elevated Pendency: a significant share of records remain pending at stations or banks, indicating a need for expedited follow-up.'
+            : `Steady Progress: ${fmtN(it.rc)} of ${fmtN(it.total)} records (${gp.toFixed(1)}%) have completed restoration, with the remainder distributed across other categories.`;
+        doc.setFont('times', 'normal'); doc.setFontSize(8); doc.setTextColor(...ink);
+        const w = doc.splitTextToSize(pdfSafe('•  ' + insight), cW - 4); ensure(w.length * 4 + 2); doc.text(w, mX, cy); cy += w.length * 4 + 3;
+        doc.setFont('times', 'italic'); doc.setFontSize(6.8); doc.setTextColor(...muted);
+        const nw = doc.splitTextToSize(pdfSafe('Note: ' + MRM_STATION_NOTE), cW - 4); ensure(nw.length * 3.4 + 6); doc.text(nw, mX, cy); cy += nw.length * 3.4 + 9;
+      }
+      ensure(20); doc.setFont('times', 'bold'); doc.setFontSize(10); doc.setTextColor(...navy2); doc.text('STATION-WISE MRM ABSTRACT', mX, cy); cy += 4.5;
+      const body = R.body.concat([R.total]);
+      doc.autoTable({
+        startY: cy, head: [MRM_HEAD], body, margin: { left: mX, right: mX, bottom: 14 },
+        styles: { font: 'times', fontSize: 7.4, textColor: ink, lineColor: border, lineWidth: 0.15, cellPadding: 1.8, halign: 'center' },
+        headStyles: { fillColor: navy, textColor: 255, fontStyle: 'bold', halign: 'center', fontSize: 6.8 }, alternateRowStyles: { fillColor: rowAlt },
+        didParseCell: x => {
+          if (x.section !== 'body') return;
+          if (x.row.index === body.length - 1) { x.cell.styles.fillColor = navy; x.cell.styles.fontStyle = 'bold'; x.cell.styles.textColor = 255; x.cell.styles.fontSize = 8.4; }
+          else if (x.column.index === 13) { const v = parseFloat(x.cell.raw); if (!isNaN(v)) x.cell.styles.fillColor = v >= 60 ? [230, 244, 234] : v >= 20 ? [253, 243, 227] : [251, 230, 230]; }
+        }
+      });
+      cy = doc.lastAutoTable.finalY + 3;
+      doc.setFont('times', 'italic'); doc.setFontSize(6.8); doc.setTextColor(...muted);
+      const vn = doc.splitTextToSize(pdfSafe(MRM_VICTIM_NOTE), cW - 4); ensure(vn.length * 3.4 + 6); doc.text(vn, mX, cy); cy += vn.length * 3.4 + 9;
+      if (bank && bank.banks.length) {
+        ensure(9); doc.setFont('times', 'bold'); doc.setFontSize(10); doc.setTextColor(...navy2); doc.text('BANK-WISE PENDING DETAILS (MONTH-WISE)', mX, cy); cy += 4.5;
+        const bc = mrmBankCfg(bank); const bb = bc.rows.map(r => [r.name].concat(bank.months.map(mm => r['m_' + mm])).concat([r.tot]));
+        bb.push(['TOTAL'].concat(bank.months.map(mm => bc.totals['m_' + mm] || 0)).concat([bc.totals.tot]));
+        doc.autoTable({
+          startY: cy, head: [['BANK NAME'].concat(bank.months.map(x => x.toUpperCase())).concat(['TOTAL'])], body: bb, margin: { left: mX, right: mX, bottom: 14 },
+          styles: { font: 'times', fontSize: 7.4, textColor: ink, lineColor: border, lineWidth: 0.15, cellPadding: 1.8, halign: 'center' },
+          headStyles: { fillColor: navy, textColor: 255, fontStyle: 'bold', halign: 'center', fontSize: 6.8 }, alternateRowStyles: { fillColor: rowAlt }, columnStyles: { 0: { halign: 'left' } },
+          didParseCell: x => { if (x.section === 'body' && x.row.index === bb.length - 1) { x.cell.styles.fillColor = navy; x.cell.styles.fontStyle = 'bold'; x.cell.styles.textColor = 255; } }
+        });
+        cy = doc.lastAutoTable.finalY + 8;
+      }
+      if (V.kp.length) {
+        ensure(9); doc.setFont('times', 'bold'); doc.setFontSize(10); doc.setTextColor(...navy2); doc.text('KEY POINTS', mX, cy); cy += 5.5;
+        const kc = { 'kp-worst': [red, bgs.red], 'kp-best': [green, bgs.green], 'kp-info': [navy2, bgs.navy] };
+        doc.setFont('times', 'normal'); doc.setFontSize(8);
+        V.kp.forEach(k => {
+          const w = doc.splitTextToSize(pdfSafe(k.label + ' ' + k.text), cW - 8), bh = w.length * 4 + 5; ensure(bh + 3);
+          const [ln, bg] = kc[k.cls] || kc['kp-info'];
+          doc.setDrawColor(...ln); doc.setLineWidth(0.3); doc.setFillColor(...bg); doc.roundedRect(mX, cy, cW, bh, 1.2, 1.2, 'FD');
+          doc.setTextColor(...ink); doc.text(w, mX + 4, cy + 4.5); cy += bh + 3;
+        });
+        doc.setLineWidth(0.2);
+      }
+      pdfFinish(doc, 'MRM Status Report • Data verified • Formatted for official documentation');
+      doc.save('MRM_Report_' + dmy(snap.date) + '.pdf');
+    } else {
+      needLib('XLSX');
+      const E = ['', '', '', '', '', '', '', '', '', '', '', '', '', ''];
+      const num2 = v => Number(v.toFixed(2));
+      const sec = snap.sections.main;
+      const row = (n, v) => [n, v.total, `${fmtN(v.vrr)} (${fmtN(v.vrrAck)})`, v.vc, v.vp, v.pas, v.orb, v.pab, v.bc, v.bp, v.rnc, v.rc, v.ar, num2(mrmPctRestored(v)), num2(mrmPctPolice(v))];
+      const aoa = [['MRM Report on ' + dd].concat(E), ['Row Labels'].concat(MRM_HEAD.slice(1, 13)).concat(['Restoration percentage', 'Completion percentage (Police)'])];
+      sec.stations.forEach(s => aoa.push(row(s.name, s.v))); aoa.push(row('Total', t));
+      aoa.push([]); aoa.push(['Report Generated at ' + nowStamp().slice(11) + ' Hrs']);
+      aoa.push([]); aoa.push(['OVERVIEW']); V.ov.forEach(o => aoa.push([o.label, o.value]));
+      if (bank && bank.banks.length) {
+        const bc = mrmBankCfg(bank);
+        aoa.push([]); aoa.push(['BANK-WISE PENDING DETAILS (MONTH-WISE)']); aoa.push(['BANK NAME'].concat(bank.months.map(x => x.toUpperCase())).concat(['TOTAL']));
+        bc.rows.forEach(r => aoa.push([r.name].concat(bank.months.map(mm => r['m_' + mm])).concat([r.tot])));
+        aoa.push(['TOTAL'].concat(bank.months.map(mm => bc.totals['m_' + mm] || 0)).concat([bc.totals.tot]));
+      }
+      aoa.push([]); aoa.push(['KEY POINTS']); V.kp.forEach(k => aoa.push([k.label + ' ' + k.text]));
+      aoa.push([]); aoa.push([MRM_VICTIM_NOTE]); aoa.push(['Note: ' + MRM_STATION_NOTE]);
+      const ws = XLSX.utils.aoa_to_sheet(aoa);
+      ws['!cols'] = [{ wch: 26 }, { wch: 14 }, { wch: 18 }, { wch: 16 }, { wch: 16 }, { wch: 16 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 12 }, { wch: 18 }, { wch: 18 }, { wch: 14 }, { wch: 14 }, { wch: 14 }];
+      ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 14 } }];
+      const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'MRM');
+      XLSX.writeFile(wb, 'MRM_RESULT_' + dmy(snap.date) + '.xlsx');
+    }
+    await Vault.log('Export', `MRM ${kind.toUpperCase()} as on ${dmy(snap.date)}`);
+    toast('Export ready: MRM ' + kind.toUpperCase(), 'ok');
+  } catch (e) { console.error(e); toast('Export failed: ' + e.message, 'err', 7000); }
+}
+
+/* =====================================================================
+   UI — network animation, lock screen, navigation, portal tabs,
+   dashboard, work done, exports, backup & security
+   ===================================================================== */
+PORTALS.forEach(p => { p.print = { NCRP: [0, 110, 140], MRM: [0, 120, 75], GRM: [175, 105, 0], CEIR: [95, 55, 165], CIAR: [25, 75, 190], OCWC: [195, 70, 30], SAHAYOG: [185, 20, 100] }[p.id]; });
+const NAVY = [8, 22, 40];
+
+/* ---------------- cyber network background ---------------- */
+const NetFx = {
+  c: null, x: null, nodes: [], pk: [], w: 0, h: 0, intensity: 1, mouse: null, reduced: false,
+  init() {
+    this.c = $('#netfx'); this.x = this.c.getContext('2d');
+    this.reduced = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    this.resize(); addEventListener('resize', () => this.resize());
+    addEventListener('mousemove', e => { this.mouse = { x: e.clientX, y: e.clientY }; }, { passive: true });
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) requestAnimationFrame(() => this.frame()); });
+    requestAnimationFrame(() => this.frame());
+  },
+  resize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    this.w = innerWidth; this.h = innerHeight; this.c.width = this.w * dpr; this.c.height = this.h * dpr;
+    this.x.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const n = Math.max(28, Math.min(120, Math.round(this.w * this.h / 13000)));
+    this.nodes = Array.from({ length: n }, () => ({ x: Math.random() * this.w, y: Math.random() * this.h, vx: (Math.random() - .5) * .35, vy: (Math.random() - .5) * .35, r: Math.random() * 1.6 + 1, hub: Math.random() < .09, ph: Math.random() * 6.28 }));
+    this.pk = [];
+    if (this.reduced) this.frame();
+  },
+  frame() {
+    if (document.hidden) return;
+    const x = this.x, N = this.nodes, D = 145, I = this.intensity, edges = [];
+    x.clearRect(0, 0, this.w, this.h);
+    for (const n of N) {
+      if (!this.reduced) { n.x += n.vx; n.y += n.vy; if (n.x < 0 || n.x > this.w) n.vx *= -1; if (n.y < 0 || n.y > this.h) n.vy *= -1; n.ph += .03; }
+    }
+    x.lineWidth = 1;
+    for (let i = 0; i < N.length; i++) for (let j = i + 1; j < N.length; j++) {
+      const a = N[i], b = N[j], dx = a.x - b.x, dy = a.y - b.y, d = Math.sqrt(dx * dx + dy * dy);
+      if (d < D) { x.strokeStyle = `rgba(0,229,255,${((1 - d / D) * .32 * I).toFixed(3)})`; x.beginPath(); x.moveTo(a.x, a.y); x.lineTo(b.x, b.y); x.stroke(); edges.push([a, b]); }
+    }
+    if (this.mouse) for (const n of N) { const dx = n.x - this.mouse.x, dy = n.y - this.mouse.y, d = Math.sqrt(dx * dx + dy * dy); if (d < 190) { x.strokeStyle = `rgba(0,255,157,${((1 - d / 190) * .45 * I).toFixed(3)})`; x.beginPath(); x.moveTo(n.x, n.y); x.lineTo(this.mouse.x, this.mouse.y); x.stroke(); } }
+    if (!this.reduced && edges.length && this.pk.length < 26 && Math.random() < .22) { const e = edges[Math.floor(Math.random() * edges.length)]; this.pk.push({ a: e[0], b: e[1], t: 0, s: .008 + Math.random() * .016, c: ['0,229,255', '0,255,157', '255,46,136', '41,121,255'][Math.floor(Math.random() * 4)] }); }
+    this.pk = this.pk.filter(p => p.t <= 1);
+    for (const p of this.pk) {
+      p.t += p.s; const px = p.a.x + (p.b.x - p.a.x) * p.t, py = p.a.y + (p.b.y - p.a.y) * p.t;
+      const g = x.createRadialGradient(px, py, 0, px, py, 7); g.addColorStop(0, `rgba(${p.c},${.95 * I})`); g.addColorStop(1, `rgba(${p.c},0)`);
+      x.fillStyle = g; x.beginPath(); x.arc(px, py, 7, 0, 6.283); x.fill();
+    }
+    for (const n of N) {
+      x.fillStyle = n.hub ? `rgba(0,255,157,${.9 * I})` : `rgba(120,220,255,${.75 * I})`;
+      x.beginPath(); x.arc(n.x, n.y, n.hub ? n.r + 1.4 : n.r, 0, 6.283); x.fill();
+      if (n.hub) { const r = 6 + (Math.sin(n.ph) + 1) * 6; x.strokeStyle = `rgba(0,255,157,${(.35 - r / 60) * I})`; x.beginPath(); x.arc(n.x, n.y, r, 0, 6.283); x.stroke(); }
+    }
+    if (!this.reduced) requestAnimationFrame(() => this.frame());
+  }
+};
+
+/* ---------------- boot / lock screen ---------------- */
+async function boot() {
+  $('#logoSvg').innerHTML = LOGO_SVG; $('#logoSvg2').innerHTML = LOGO_SVG; fillIcons();
+  NetFx.init();
+  const env = $('#envMsg');
+  if (!window.isSecureContext || !window.crypto || !crypto.subtle) { env.textContent = 'Encryption is unavailable here. Open the app from an https:// address (e.g. GitHub Pages) or http://localhost — see the setup guide.'; env.classList.remove('hidden'); return; }
+  try { await IDB.open(); } catch (e) { env.textContent = 'Secure storage (IndexedDB) is unavailable: ' + e.message + ' — private/incognito windows may block it.'; env.classList.remove('hidden'); return; }
+  let lm = ''; try { lm = sessionStorage.getItem('cps_lockmsg') || ''; sessionStorage.removeItem('cps_lockmsg'); } catch (e) { }
+  if (await Vault.exists()) { $('#loginForm').classList.remove('hidden'); $('#loginPass').focus(); if (lm) { $('#loginMsg').textContent = lm; $('#loginMsg').className = 'msg info'; } }
+  else { $('#setupForm').classList.remove('hidden'); $('#setPass1').focus(); }
+}
+$('#setPass1').addEventListener('input', e => {
+  const s = passStrength(e.target.value); const bar = $('#strengthBar');
+  bar.style.width = (s / 5 * 100) + '%'; bar.style.background = ['#ff4d5e', '#ff4d5e', '#ffb300', '#ffb300', '#00e38c', '#00ff9d'][s];
+  $('#strengthTxt').textContent = ['Too short', 'Very weak', 'Weak', 'Fair', 'Strong', 'Very strong'][s];
+});
+$('#setupForm').addEventListener('submit', async e => {
+  e.preventDefault(); const p1 = $('#setPass1').value, p2 = $('#setPass2').value, m = $('#setupMsg');
+  const err = passPolicy(p1) || (p1 !== p2 ? 'The two passphrases do not match.' : '');
+  if (err) { m.textContent = err; m.className = 'msg err'; return; }
+  await withBusy('GENERATING 256-BIT KEY', () => Vault.create(p1));
+  $('#setPass1').value = $('#setPass2').value = '';
+  enterApp(true);
+});
+$('#loginForm').addEventListener('submit', async e => {
+  e.preventDefault(); const m = $('#loginMsg'); const w = Throttle.wait();
+  if (w > 0) { m.textContent = `Too many failed attempts. Try again in ${Math.ceil(w / 1000)} s.`; m.className = 'msg err'; return; }
+  const pass = $('#loginPass').value; if (!pass) return;
+  const ok = await withBusy('DECRYPTING VAULT', () => Vault.unlock(pass));
+  $('#loginPass').value = '';
+  if (!ok) { const v = Throttle.fail(); m.textContent = 'Access denied — wrong passphrase.' + (v.n >= 3 ? ` (${v.n} failed attempts)` : ''); m.className = 'msg err'; $('#loginPass').focus(); return; }
+  Throttle.ok(); await Vault.log('Vault unlocked'); enterApp(false);
+});
+
+let appBuilt = false;
+function enterApp(fresh) {
+  $('#lock').classList.add('hidden'); $('#app').classList.remove('hidden');
+  NetFx.intensity = .5;
+  if (!appBuilt) { buildNav(); buildPortalViews(); wireStatic(); appBuilt = true; }
+  applySettingsToUI(); updateDriveChip(); renderAudit();
+  go('dash'); startIdle();
+  if (fresh) modal({ title: 'Vault initialised', html: '<p>Your encrypted vault is ready.</p><p class="tiny">Next: open <b>Backup &amp; Security</b> and connect Google Drive so every snapshot is backed up (encrypted). Keep the passphrase safe — it cannot be recovered.</p>', ok: 'Continue', cancel: '' });
+}
+
+/* ---------------- idle auto-lock ---------------- */
+let lastAct = Date.now(), idleTimer = null;
+['mousemove', 'keydown', 'click', 'touchstart', 'wheel'].forEach(ev => addEventListener(ev, () => { lastAct = Date.now(); }, { passive: true }));
+function startIdle() {
+  clearInterval(idleTimer); lastAct = Date.now();
+  idleTimer = setInterval(() => {
+    const left = (Vault.settings.autoLockMin || 10) * 60000 - (Date.now() - lastAct);
+    if (left <= 0) { lockNow('Auto-locked after inactivity.'); return; }
+    const s = Math.ceil(left / 1000); $('#idleChip').textContent = '⏱ ' + pad2(Math.floor(s / 60)) + ':' + pad2(s % 60);
+  }, 1000);
+}
+async function lockNow(reason) {
+  clearInterval(idleTimer);
+  try { await Vault.log('Vault locked', reason || 'manual'); } catch (e) { }
+  try { sessionStorage.setItem('cps_lockmsg', reason || 'Vault locked.'); } catch (e) { }
+  Vault.key = null; Drive.token = null;
+  location.reload();
+}
+
+/* ---------------- navigation ---------------- */
+function buildNav() {
+  const it = (id, label, ic, color) => `<button class="nav-i" data-go="${id}" style="--pc:${color}">${icon(ic)}<span>${esc(label)}</span><span class="cnt" id="cnt-${id}"></span></button>`;
+  $('#nav').innerHTML = `<div class="nav-h">COMMAND</div>${it('dash', 'Dashboard', 'grid', '#00e5ff')}<div class="nav-h">PORTALS</div>${PORTALS.map(p => it(p.id, p.short, p.icon, p.color)).join('')}<div class="nav-h">ANALYTICS</div>${it('work', 'Work Done', 'chart', '#00ff9d')}<div class="nav-h">SYSTEM</div>${it('sec', 'Backup & Security', 'lock', '#ff2e88')}`;
+  $('#nav').addEventListener('click', e => { const b = e.target.closest('[data-go]'); if (b) go(b.dataset.go); });
+  updateNavCounts();
+}
+function updateNavCounts() { PORTALS.forEach(p => { const c = $('#cnt-' + p.id); if (c) c.textContent = Vault.snapsOf(p.id).length || ''; }); }
+function go(id) {
+  $$('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + id));
+  $$('.nav-i').forEach(b => b.classList.toggle('active', b.dataset.go === id));
+  if (id === 'dash') renderDash();
+  if (id === 'work') prepWD();
+  if (id === 'sec') renderSec();
+  if (P_BY[id]) renderHistory(id);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ---------------- animated numbers & rings ---------------- */
+function fmtBy(f, v) { return f === 'm' ? fmtMoney(v) : f === 'p' ? Number(v).toFixed(1) + '%' : fmtN(Math.round(v)); }
+function animateCounts(root) {
+  $$('[data-v]', root).forEach(el => {
+    const to = Number(el.dataset.v), f = el.dataset.f || 'n';
+    if (NetFx.reduced || !isFinite(to)) { el.textContent = fmtBy(f, to); return; }
+    const t0 = performance.now(), dur = 900;
+    const step = t => { const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3); el.textContent = fmtBy(f, f === 'p' ? to * e : (f === 'm' ? to * e : to * e)); if (k < 1) requestAnimationFrame(step); else el.textContent = fmtBy(f, to); };
+    requestAnimationFrame(step);
+  });
+  $$('.ring .fg', root).forEach(c => { const C = Number(c.dataset.c), p = Number(c.dataset.p); requestAnimationFrame(() => requestAnimationFrame(() => { c.style.strokeDashoffset = C * (1 - Math.max(0, Math.min(100, p)) / 100); })); });
+}
+function ringHTML(p, color, big) {
+  const r = 34, C = 2 * Math.PI * r;
+  return `<div class="ring${big ? ' big' : ''}" style="--pc:${color}"><svg viewBox="0 0 80 80"><circle class="bg" cx="40" cy="40" r="${r}"/><circle class="fg" cx="40" cy="40" r="${r}" stroke-dasharray="${C.toFixed(2)}" style="stroke-dashoffset:${C.toFixed(2)}" data-c="${C.toFixed(2)}" data-p="${p}"/></svg><div class="v" data-v="${p}" data-f="p">0%</div></div>`;
+}
+function statCard(label, v, color, f = 'n') { return `<div class="glass stat" style="--sc:${color}"><div class="n" data-v="${v}" data-f="${f}">0</div><div class="l">${esc(label)}</div></div>`; }
+
+/* ---------------- generic sortable table ---------------- */
+const TBL = {}; let tblSeq = 0;
+const tierColor = t => ({ g: 'var(--good)', m: 'var(--mid)', b: 'var(--bad)' }[t]);
+function tableHTML(cfg) {
+  const id = 't' + (++tblSeq); TBL[id] = Object.assign({ sortK: null, dir: -1 }, cfg);
+  const th = cfg.cols.map(c => `<th data-k="${c.k}" class="${c.f === 'name' || c.f === 'txt' ? 'l' : ''}">${esc(c.l)}</th>`).join('');
+  return `<div class="tw"><table class="dt" data-tid="${id}"><thead><tr><th class="l" data-k="__i">#</th>${th}</tr></thead><tbody></tbody>${cfg.totals ? '<tfoot></tfoot>' : ''}</table></div>`;
+}
+function cellHTML(c, r, cfg, isTotal) {
+  const v = r[c.k];
+  switch (c.f) {
+    case 'name': return `<td class="l">${esc(v)}</td>`;
+    case 'txt': return `<td class="l" style="font-family:var(--fm);font-size:13px;font-weight:400">${esc(v)}</td>`;
+    case 'm': return `<td>${fmtMoney(v)}</td>`;
+    case 'pair': return `<td>${fmtN(v)} <span style="color:var(--ink2)">(${fmtN(r[c.pk])})</span></td>`;
+    case 'd': return v === null || v === undefined ? '<td>—</td>' : `<td class="${v > 0 ? 'up' : v < 0 ? 'down' : ''}">${v > 0 ? '+' : ''}${fmtN(v)}${v < 0 ? ' ⚠' : ''}</td>`;
+    case 'dp': return v === null || v === undefined ? '<td>—</td>' : `<td class="${v > 0 ? 'down' : v < 0 ? 'up' : ''}">${v > 0 ? '+' : ''}${fmtN(v)}</td>`;
+    case 'pct': { if (v === null || v === undefined) return '<td>—</td>'; const t = cfg.tier ? cfg.tier(v) : 'g'; return `<td><div class="pbar"><span class="${isTotal ? '' : t}">${Number(v).toFixed(1)}%</span><i style="--w:${Math.max(0, Math.min(100, v))}%;--bc:${isTotal ? 'var(--cyan)' : tierColor(t)}"></i></div></td>`; }
+    default: return v === null || v === undefined ? '<td>—</td>' : `<td>${fmtN(v)}</td>`;
+  }
+}
+function fillTable(id) {
+  const cfg = TBL[id]; const t = document.querySelector(`table[data-tid="${id}"]`); if (!t) return;
+  let rows = cfg.rows.slice();
+  if (cfg.sortK && cfg.sortK !== '__i') { const k = cfg.sortK; rows.sort((a, b) => { const x = a[k], y = b[k]; if (typeof x === 'string' || typeof y === 'string') return String(x).localeCompare(String(y)) * cfg.dir; return ((x ?? -1e18) - (y ?? -1e18)) * cfg.dir; }); }
+  $('tbody', t).innerHTML = rows.map((r, i) => `<tr><td class="l" style="font-family:var(--fm);color:var(--ink3)">${i + 1}</td>${cfg.cols.map(c => cellHTML(c, r, cfg)).join('')}</tr>`).join('') || `<tr><td colspan="${cfg.cols.length + 1}" class="l muted">No rows</td></tr>`;
+  if (cfg.totals) $('tfoot', t).innerHTML = `<tr><td></td>${cfg.cols.map(c => c.f === 'name' ? `<td class="l">TOTAL</td>` : cellHTML(c, cfg.totals, cfg, true)).join('')}</tr>`;
+  $$('th', t).forEach(h => { h.textContent = h.textContent.replace(/ [▲▼]$/, ''); if (h.dataset.k === cfg.sortK) h.textContent += cfg.dir > 0 ? ' ▲' : ' ▼'; });
+}
+function fillTables(root) { $$('table[data-tid]', root).forEach(t => fillTable(t.dataset.tid)); }
+document.addEventListener('click', e => {
+  const th = e.target.closest('table.dt th[data-k]'); if (!th) return;
+  const id = th.closest('table').dataset.tid; const cfg = TBL[id]; if (!cfg) return;
+  if (cfg.sortK === th.dataset.k) cfg.dir *= -1; else { cfg.sortK = th.dataset.k; cfg.dir = th.dataset.k === 'name' ? 1 : -1; }
+  fillTable(id);
+});
+function portalTableCfg(p, d, sec) {
+  const cols = [{ k: 'name', l: 'Police Station', f: 'name' }].concat(d.cols.filter(c => !c.hide).map(c => ({ k: c.k, l: c.l, f: c.money ? 'm' : c.pair ? 'pair' : 'n', pk: c.pair }))).concat([{ k: '__pct', l: d.pctl || 'Completion %', f: 'pct' }]).concat((d.calc || []).map(c => ({ k: c.k, l: c.l, f: 'pct' })));
+  const calc = v => Object.fromEntries((d.calc || []).map(c => [c.k, c.fn(v)]));
+  const rows = sec.stations.map(s => Object.assign({ name: s.name }, s.v, { __pct: secPct(d, s.v) }, calc(s.v)));
+  const totals = Object.assign({ name: 'TOTAL' }, sec.totals, { __pct: secPct(d, sec.totals) }, calc(sec.totals));
+  return { cols, rows, totals, tier: v => tierOf(d, v) };
+}
+
+/* ---------------- portal views ---------------- */
+const PS = {}; // per-portal state
+function optsHTML(p) {
+  if (p.id === 'GRM') return `<label class="f">Group rows by<select data-o="groupCol"><option value="">(load file)</option></select></label>
+    <label class="f">Status column<select data-o="statusCol"><option value="">(load file)</option></select></label>
+    <label class="f">Date of receipt column<select data-o="dateCol"><option value="">(none)</option></select></label>
+    <label class="f">"Pending" roles<input type="text" data-o="pendingRoles"></label>
+    <label class="f">"Sent to bank" roles<input type="text" data-o="bankRoles"></label>
+    <label class="f">SOP limit (days)<input type="number" min="1" data-o="sop"></label>
+    <p class="tiny muted full" style="margin:0">Only the text before the first comma of the status is matched ("IO" in "IO, PS : Thrikkakara"). Any other role — including blank — counts as Closed.</p>`;
+  if (p.id === 'MRM') return `<label class="f full">Jurisdiction / heading (for PDF report)<input type="text" data-o="jurisdiction" placeholder="e.g. Kochi City Police Jurisdiction"></label>
+    <div class="full glass" style="padding:12px 14px;border-color:rgba(41,121,255,.45)"><b class="tiny" style="letter-spacing:.12em;color:var(--blue)">STEP 1B · MANUAL DATA (OPTIONAL)</b>
+      <p class="tiny muted" style="margin:6px 0 10px">Victims Contacted, Victims Pending, Bank Contacted and Bank Pending. Process the raw file first, download the template (station names pre-filled), fill the 4 columns and upload it back. If not uploaded, these columns stay 0.</p>
+      <div class="row"><button class="btn sm" id="mrmTpl" style="--c:var(--blue)" disabled>📥 Download template</button><button class="btn sm" id="mrmManBtn" style="--c:var(--blue)">📤 Upload filled template</button><input type="file" id="mrmMan" accept=".xlsx,.xls,.csv" class="hidden"></div>
+      <div class="msg" id="mrmManMsg"></div></div>`;
+  if (p.id === 'SAHAYOG') return `<label class="f">Jurisdiction<input type="text" data-o="city"></label>
+    <label class="f">Period from<input type="text" data-o="from" placeholder="DD-MM-YYYY"></label>
+    <label class="f">Period to<input type="text" data-o="to" placeholder="= snapshot date"></label>`;
+  if (p.id === 'CEIR') return `<p class="tiny muted full" style="margin:0">State-wise and pincode-wise traceability analysis stays in the standalone CEIR dashboard; this tab stores the station-wise figures used for Work Done.</p>`;
+  return '';
+}
+function readOpts(p) {
+  const o = {}; $$('[data-o]', $('#opts-' + p.id)).forEach(el => { o[el.dataset.o] = el.value.trim ? el.value.trim() : el.value; });
+  if (p.id === 'SAHAYOG' && !o.to) o.to = dmy($('#date-' + p.id).value || isoToday());
+  if (p.id === 'GRM') o.sop = Number(o.sop) || 75;
+  return o;
+}
+function buildPortalViews() {
+  $('#portalViews').innerHTML = PORTALS.map(p => `
+  <section class="view" id="view-${p.id}" style="--pc:${p.color}">
+    <div class="glass p-hero corner" style="--pc:${p.color}">
+      <div class="hex" style="--pc:${p.color}">${icon(p.icon)}</div>
+      <div style="position:relative;z-index:1"><h2><em>${esc(p.short.toUpperCase())}</em> PORTAL</h2><p>${esc(p.full)} · ${esc(p.tag)}</p></div>
+      <div class="latest" id="latest-${p.id}"></div>
+    </div>
+    <div class="p-grid">
+      <div class="glass card corner" style="--pc:${p.color}">
+        <h3>1 · Load raw data</h3>
+        <div class="drop" id="drop-${p.id}" style="--pc:${p.color}" tabindex="0" role="button">${icon('upload')}<b>Drop ${p.multi ? 'files' : 'file'} here or click to browse</b><span>${esc(p.accept)}</span><input type="file" accept="${p.accept}" ${p.multi ? 'multiple' : ''}></div>
+        <p class="tiny muted" style="margin:8px 0 0">${esc(p.hint)}</p>
+        <div class="files" id="files-${p.id}"></div>
+        <div class="opts" id="opts-${p.id}">${optsHTML(p)}</div>
+        <div class="row" style="margin-top:14px">
+          <label class="f">Snapshot date (data as on)<input type="date" id="date-${p.id}"></label>
+          <button class="btn primary" id="proc-${p.id}" style="--c:${p.color}" disabled>⚙ PROCESS DATA</button>
+          <button class="btn sm ghost" id="clr-${p.id}">Clear</button>
+        </div>
+        <div class="msg" id="msg-${p.id}"></div>
+      </div>
+      <div class="glass card corner" style="--pc:${p.color}">
+        <h3>2 · Encrypted snapshots</h3>
+        <div class="hist" id="hist-${p.id}"></div>
+        <p class="tiny muted" style="margin:12px 0 0">Click a date to open it. Saved snapshots feed the Work Done report and every backup.</p>
+      </div>
+    </div>
+    <div id="extra-${p.id}"></div>
+    <div id="res-${p.id}"></div>
+  </section>`).join('');
+  PORTALS.forEach(wirePortal);
+}
+function wirePortal(p) {
+  const st = PS[p.id] = { files: [], cache: null, cacheSig: '', current: null, viewingId: null };
+  const drop = $('#drop-' + p.id), inp = $('input', drop), dateI = $('#date-' + p.id);
+  if (p.id === 'GRM') { const g = Vault.settings.grm; $('[data-o=pendingRoles]', drop.parentNode).value = g.pendingRoles; $('[data-o=bankRoles]', drop.parentNode).value = g.bankRoles; $('[data-o=sop]', drop.parentNode).value = g.sop; }
+  if (p.id === 'SAHAYOG') { const s = Vault.settings.sahayog; $('[data-o=city]', drop.parentNode).value = s.city; $('[data-o=from]', drop.parentNode).value = s.from; }
+  if (p.id === 'MRM') wireMRMManual(p, st);
+  drop.addEventListener('click', () => inp.click());
+  drop.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); inp.click(); } });
+  ['dragover', 'dragenter'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('drag'); }));
+  ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('drag'); }));
+  drop.addEventListener('drop', e => { if (e.dataTransfer.files.length) addFiles(p, e.dataTransfer.files); });
+  inp.addEventListener('change', () => { if (inp.files.length) addFiles(p, inp.files); inp.value = ''; });
+  dateI.addEventListener('change', () => { dateI.dataset.touched = '1'; if (st.current && !st.viewingId) { st.current.date = dateI.value; renderResult(p.id); } });
+  $('#proc-' + p.id).addEventListener('click', () => processPortal(p));
+  $('#clr-' + p.id).addEventListener('click', () => { st.manual = {}; if (p.id === 'MRM') { $('#mrmManMsg').textContent = ''; $('#mrmTpl').disabled = true; } st.files = []; st.cache = null; st.cacheSig = ''; st.current = null; st.viewingId = null; dateI.value = ''; delete dateI.dataset.touched; renderFiles(p); $('#res-' + p.id).innerHTML = ''; $('#extra-' + p.id).innerHTML = ''; setMsg(p, ''); renderHistory(p.id); });
+  $('#res-' + p.id).addEventListener('click', e => { const b = e.target.closest('[data-act]'); if (!b) return; ({ save: () => saveCurrent(p), pdf: () => exportPortal(p, 'pdf'), xlsx: () => exportPortal(p, 'xlsx') })[b.dataset.act](); });
+  $('#hist-' + p.id).addEventListener('click', async e => {
+    const del = e.target.closest('[data-del]'); if (del) { e.stopPropagation(); return deleteSnap(p, del.dataset.del); }
+    const c = e.target.closest('[data-sid]'); if (!c) return;
+    const snap = await Vault.getSnapshot(c.dataset.sid); st.current = snap; st.viewingId = c.dataset.sid; st.ovr = snap.ovr || { ov: {}, kp: {} }; $('#extra-' + p.id).innerHTML = '';
+    renderResult(p.id); renderHistory(p.id); $('#res-' + p.id).scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+}
+function setMsg(p, t, k = 'info') { const m = $('#msg-' + p.id); m.textContent = t; m.className = 'msg ' + k; }
+function addFiles(p, list) {
+  const st = PS[p.id]; const arr = Array.from(list);
+  const ok = arr.filter(f => p.accept.split(',').some(ext => f.name.toLowerCase().endsWith(ext.trim())));
+  if (!ok.length) { setMsg(p, 'Unsupported file type. Accepted: ' + p.accept, 'err'); return; }
+  st.files = p.multi ? st.files.concat(ok.filter(f => !st.files.some(x => x.name === f.name && x.size === f.size))) : [ok[0]];
+  const dateI = $('#date-' + p.id);
+  if (!dateI.dataset.touched) { const g = st.files.map(f => dateFromName(f.name)).filter(Boolean).sort().pop(); dateI.value = g || isoToday(); }
+  renderFiles(p); setMsg(p, `${st.files.length} file(s) ready — press PROCESS DATA.`, 'info');
+}
+function renderFiles(p) {
+  const st = PS[p.id];
+  $('#files-' + p.id).innerHTML = st.files.map((f, i) => `<div class="file"><span>📄</span><b title="${esc(f.name)}">${esc(f.name)}</b><span class="tiny muted">${(f.size / 1024).toFixed(1)} KB</span><button class="x" data-i="${i}" title="Remove">✕</button></div>`).join('');
+  $$('.x', $('#files-' + p.id)).forEach(b => b.onclick = () => { st.files.splice(+b.dataset.i, 1); renderFiles(p); });
+  $('#proc-' + p.id).disabled = !st.files.length;
+}
+function makeSnapshot(p, built, date) {
+  const sections = {};
+  p.sections.forEach(d => { if (built.sections[d.id]) { sections[d.id] = mkSection(d, built.sections[d.id]); if (built.totalsOverride && built.totalsOverride[d.id]) Object.assign(sections[d.id].totals, built.totalsOverride[d.id]); } });
+  const snap = { portal: p.id, date, savedAt: new Date().toISOString(), files: PS[p.id].files.map(f => f.name), meta: built.meta || {}, sections, summary: summarize(p, sections), extras: built.extras || null };
+  if (built.report) snap.report = built.report;
+  return snap;
+}
+async function processPortal(p) {
+  const st = PS[p.id]; const date = $('#date-' + p.id).value;
+  if (!date) { setMsg(p, 'Choose the snapshot date (the date the data is "as on").', 'err'); return; }
+  try {
+    await withBusy('PARSING ' + p.short.toUpperCase(), async () => {
+      const sig = st.files.map(f => f.name + f.size + f.lastModified).join('|');
+      if (!st.cache || st.cacheSig !== sig) { st.cache = await p.load(st.files); st.cacheSig = sig; if (p.id === 'GRM') fillGRMCols(st.cache.headers); }
+      rebuild(p);
+    });
+    setMsg(p, 'Processed. Review the figures, then SAVE ENCRYPTED SNAPSHOT.', 'ok');
+    $('#res-' + p.id).scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch (e) { console.error(e); setMsg(p, e.message, 'err'); }
+}
+function rebuild(p) {
+  const st = PS[p.id]; const built = p.build(st.cache, readOpts(p));
+  st.current = makeSnapshot(p, built, $('#date-' + p.id).value); st.viewingId = null; st.ovr = { ov: {}, kp: {} };
+  renderExtras(p); renderResult(p.id); renderHistory(p.id);
+  if (p.id === 'MRM') $('#mrmTpl').disabled = false;
+}
+function fillGRMCols(headers) {
+  const box = $('#opts-GRM'); const sel = n => $(`[data-o=${n}]`, box);
+  const fill = (s, opts, val, none) => { s.innerHTML = (none ? '<option value="">(none)</option>' : '') + opts.map(h => `<option>${esc(h)}</option>`).join(''); s.value = val; };
+  const prev = { g: sel('groupCol').value, s: sel('statusCol').value, d: sel('dateCol').value };
+  fill(sel('groupCol'), headers, headers.includes(prev.g) ? prev.g : guessCol(headers, ['police station', 'station']));
+  fill(sel('statusCol'), headers, headers.includes(prev.s) ? prev.s : guessCol(headers, ['currently at', 'status']));
+  fill(sel('dateCol'), headers, headers.includes(prev.d) ? prev.d : guessCol(headers, ['date of receipt', 'receipt date', 'date received', 'received date', 'petition date', 'complaint date', 'date'], true), true);
+  $$('select,input', box).forEach(el => { el.onchange = () => { if (PS.GRM.cache) { try { rebuild(P_BY.GRM); } catch (e) { setMsg(P_BY.GRM, e.message, 'err'); } } }; });
+}
+function renderExtras(p) {
+  const st = PS[p.id], ex = st.current && st.current.extras, box = $('#extra-' + p.id);
+  if (!ex) { box.innerHTML = ''; return; }
+  if (p.id === 'MRM') {
+    const sts = Object.keys(ex.statusCounts).sort((a, b) => ex.statusCounts[b] - ex.statusCounts[a]);
+    box.innerHTML = `<div class="glass card corner" style="--pc:${p.color};margin-bottom:18px"><h3>Status → category mapping</h3><p class="tiny muted" style="margin-top:0">Auto-classified from the raw "Status" text. Correct any line — corrections are remembered (encrypted) for future uploads.</p>
+      <div class="tw" style="max-height:300px"><table class="dt"><thead><tr><th class="l">Raw status</th><th>Rows</th><th class="l">Category</th></tr></thead><tbody>${sts.map(s => `<tr><td class="l">${esc(s)}</td><td>${fmtN(ex.statusCounts[s])}</td><td class="l"><select data-st="${esc(s)}">${MRM_CATS.map(c => `<option${ex.map[s] === c ? ' selected' : ''}>${c}</option>`).join('')}</select></td></tr>`).join('')}</tbody></table></div></div>`;
+    $$('select[data-st]', box).forEach(s => s.onchange = async () => { Vault.settings.mrmMap[s.dataset.st] = s.value; await Vault.saveSettings(); rebuild(p); });
+  } else if (p.id === 'GRM') {
+    const r = ex.roles; const ks = Object.keys(r).sort((a, b) => r[b].n - r[a].n);
+    box.innerHTML = `<div class="glass card corner" style="--pc:${p.color};margin-bottom:18px"><h3>Status roles found</h3><div class="hist">${ks.map(k => `<span class="hchip" style="--pc:${r[k].c === 'pending' ? 'var(--amber)' : r[k].c === 'bank' ? 'var(--blue)' : 'var(--green)'}">${esc(k)} <small>${r[k].n} → ${r[k].c}</small></span>`).join('')}</div><p class="tiny muted" style="margin:10px 0 0">Check that nothing is falling into Closed by mistake; adjust the role lists above if needed.</p></div>`;
+  } else box.innerHTML = '';
+}
+function renderResult(pid) {
+  const p = P_BY[pid], st = PS[pid], snap = st.current, box = $('#res-' + pid);
+  if (!snap) { box.innerHTML = ''; return; }
+  if (pid === 'MRM' && snap.report) return renderMRM(p, st, snap, box);
+  const saved = !!st.viewingId;
+  let h = `<div class="glass res-bar" style="--pc:${p.color}"><span class="t">${saved ? '🔒 SAVED SNAPSHOT · ' + dmy(snap.date) : '◉ PREVIEW — NOT YET SAVED · DATA AS ON ' + dmy(snap.date)}</span><span class="sp"></span>
+    ${saved ? '' : `<button class="btn sm primary" data-act="save" style="--c:${p.color}">🔒 SAVE ENCRYPTED SNAPSHOT</button>`}
+    <button class="btn sm" data-act="pdf" style="--c:${p.color}">⬇ PDF</button><button class="btn sm" data-act="xlsx" style="--c:${p.color}">⬇ EXCEL</button></div>`;
+  const m = snap.meta || {};
+  const info = [snap.files && snap.files.length ? 'Source: ' + snap.files.join(', ') : '', m.mode ? 'Format: ' + m.mode : '', m.rows ? m.rows + ' raw rows' : '', m.unique ? m.unique + ' unique complaints' : '', m.from ? `Period ${m.from} to ${m.to}` : '', saved ? 'Saved ' + new Date(snap.savedAt).toLocaleString('en-IN') : ''].filter(Boolean).join(' · ');
+  if (info) h += `<p class="tiny muted mono" style="margin:-6px 0 14px">${esc(info)}</p>`;
+  p.sections.forEach(d => {
+    const sec = snap.sections[d.id];
+    if (!sec) { h += `<div class="sec"><h3 class="sec-t">${esc(d.label)}</h3><div class="notes">This sheet was not present in the uploaded file.</div></div>`; return; }
+    const s = snap.summary[d.id];
+    const money = d.cols.filter(c => c.money).map(c => statCard(c.l, sec.totals[c.k], 'var(--violet)', 'm')).join('');
+    h += `<div class="sec" style="--pc:${p.color}"><h3 class="sec-t">${esc(d.label)}</h3>
+      <div class="stats">${statCard('Stations', s.n, p.color)}${statCard(d.rl, s.R, 'var(--cyan)')}${statCard(d.cl, s.C, 'var(--green)')}${statCard(d.pl, s.P, 'var(--amber)')}${money}
+      <div class="glass stat ringc">${ringHTML(s.pct, p.color)}<div class="l">${esc(d.pctl || 'Completion %')}</div></div></div>
+      ${tableHTML(portalTableCfg(p, d, sec))}</div>`;
+  });
+  box.innerHTML = h; fillTables(box); animateCounts(box);
+}
+function renderHistory(pid) {
+  const p = P_BY[pid], st = PS[pid], list = Vault.snapsOf(pid).slice().reverse();
+  $('#hist-' + pid).innerHTML = list.length ? list.map(e => { const s = e.summary && (e.summary.main || e.summary.received); return `<span class="hchip${st.viewingId === e.id ? ' active' : ''}" style="--pc:${p.color}" data-sid="${e.id}">${dmy(e.date)} <small>${s ? s.pct.toFixed(0) + '%' : ''}</small><button data-del="${e.id}" title="Delete snapshot">✕</button></span>`; }).join('') : '<span class="tiny muted">No snapshots saved yet.</span>';
+  const last = list[0];
+  $('#latest-' + pid).innerHTML = last ? `LATEST SNAPSHOT<b>${dmy(last.date)}</b>${list.length} saved` : 'NO DATA YET<b>—</b>upload to begin';
+}
+async function saveCurrent(p) {
+  const st = PS[p.id], snap = st.current; if (!snap) return;
+  const date = $('#date-' + p.id).value; if (!date) { setMsg(p, 'Choose the snapshot date first.', 'err'); return; }
+  snap.date = date; if (p.id === 'SAHAYOG' && snap.meta && !$('#opts-SAHAYOG [data-o=to]').value.trim()) snap.meta.to = dmy(date);
+  if (Vault.findSnap(p.id, date)) { const ok = await modal({ title: 'Replace snapshot?', html: `<p>A ${esc(p.short)} snapshot for <b>${dmy(date)}</b> is already saved. Replace it with this data?</p>`, ok: 'Replace', danger: true }); if (!ok) return; }
+  snap.savedAt = new Date().toISOString();
+  const clean = Object.assign({}, snap); delete clean.extras; if (st.ovr) clean.ovr = JSON.parse(JSON.stringify(st.ovr));
+  await withBusy('ENCRYPTING SNAPSHOT', () => Vault.saveSnapshot(clean));
+  await Vault.log('Snapshot saved', `${p.short} as on ${dmy(date)}`);
+  st.viewingId = Vault.findSnap(p.id, date).id;
+  toast(`${p.short} snapshot for ${dmy(date)} saved (AES-256 encrypted).`, 'ok');
+  renderResult(p.id); renderHistory(p.id); updateNavCounts(); updateDriveChip(); autoBackup();
+}
+async function deleteSnap(p, id) {
+  const e = Vault.index.snaps.find(s => s.id === id); if (!e) return;
+  const ok = await modal({ title: 'Delete snapshot?', html: `<p>Delete the ${esc(p.short)} snapshot of <b>${dmy(e.date)}</b> from this device? Existing Drive backups still contain it.</p>`, ok: 'Delete', danger: true });
+  if (!ok) return;
+  await Vault.deleteSnapshot(id); await Vault.log('Snapshot deleted', `${p.short} ${dmy(e.date)}`);
+  const st = PS[p.id]; if (st.viewingId === id) { st.viewingId = null; st.current = null; renderResult(p.id); }
+  renderHistory(p.id); updateNavCounts(); updateDriveChip(); toast('Snapshot deleted.', 'warn');
+}
+
+/* ---------------- dashboard ---------------- */
+function renderDash() {
+  const snaps = Vault.index.snaps; const dates = [...new Set(snaps.map(s => s.date))].sort();
+  const withData = PORTALS.filter(p => Vault.snapsOf(p.id).length).length;
+  const lb = Vault.settings.drive.lastBackup;
+  $('#dashKpis').innerHTML = [
+    ['Encrypted snapshots', `<span data-v="${snaps.length}">0</span>`, 'var(--cyan)'],
+    ['Portals with data', `${withData} / ${PORTALS.length}`, 'var(--green)'],
+    ['Data range', dates.length ? `<span style="font-size:17px">${dmy(dates[0])} → ${dmy(dates[dates.length - 1])}</span>` : '—', 'var(--violet)'],
+    ['Last Drive backup', lb ? `<span style="font-size:17px">${esc(lb)}</span>` : 'Never', Vault.settings.dirty ? 'var(--amber)' : 'var(--mag)']
+  ].map(([l, v, c]) => `<div class="glass kpi corner" style="--pc:${c}"><div class="n">${v}</div><div class="l">${l}</div></div>`).join('');
+  $('#dashTiles').innerHTML = PORTALS.map(p => {
+    const list = Vault.snapsOf(p.id), last = list[list.length - 1];
+    const d = p.sections[0]; const s = last && last.summary && (last.summary[d.id] || Object.values(last.summary)[0]);
+    return `<div class="glass tile corner" style="--pc:${p.color}" data-go="${p.id}" tabindex="0"><div class="pulse"></div>
+      <div class="tile-h"><div class="hex sm" style="--pc:${p.color}">${icon(p.icon)}</div><div><b>${esc(p.short.toUpperCase())}</b><small>${esc(p.full)}</small></div></div>
+      <div class="tile-b">${ringHTML(s ? s.pct : 0, p.color)}<div class="tile-stats">
+        <div><span>${esc(d.rl)}</span><b data-v="${s ? s.R : 0}">0</b></div><div><span>${esc(d.cl)}</span><b data-v="${s ? s.C : 0}">0</b></div>
+        <div><span>${esc(d.pl)}</span><b data-v="${s ? s.P : 0}">0</b></div><div><span>Stations</span><b data-v="${s ? s.n : 0}">0</b></div></div></div>
+      <div class="when"><span>${last ? 'AS ON ' + dmy(last.date) : 'NO SNAPSHOT YET'}</span><span>${list.length} saved</span></div></div>`;
+  }).join('');
+  $$('#dashTiles [data-go]').forEach(t => { t.onclick = () => go(t.dataset.go); t.onkeydown = e => { if (e.key === 'Enter') go(t.dataset.go); }; });
+  const today = isoToday(); const days = Array.from({ length: 60 }, (_, i) => addDays(today, i - 59));
+  $('#covTable').innerHTML = `<tr><th>Portal</th><th>Snapshots</th><th>First</th><th>Latest</th><th>Last 60 days</th></tr>` + PORTALS.map(p => {
+    const l = Vault.snapsOf(p.id); const set = new Set(l.map(s => s.date));
+    return `<tr style="--pc:${p.color}"><td><b style="color:${p.color}">${esc(p.short)}</b></td><td class="mono">${l.length}</td><td class="mono">${l.length ? dmy(l[0].date) : '—'}</td><td class="mono">${l.length ? dmy(l[l.length - 1].date) : '—'}</td><td><div class="dots">${days.map(d => `<i class="${set.has(d) ? 'on' : ''}" title="${dmy(d)}"></i>`).join('')}</div></td></tr>`;
+  }).join('');
+  animateCounts($('#view-dash'));
+}
+
+/* ---------------- work done ---------------- */
+function availableDates(pids) { return [...new Set(Vault.index.snaps.filter(s => !pids || pids.includes(s.portal)).map(s => s.date))].sort(); }
+function prepWD() {
+  const dates = availableDates();
+  $('#wdAvail').innerHTML = dates.length ? 'Available dates: ' + dates.map(d => `<span>${dmy(d)}</span>`).join('') : 'No snapshots saved yet — save at least two dates for a portal.';
+  if (dates.length) { ['#wdFrom', '#wdTo'].forEach(s => { $(s).min = dates[0]; $(s).max = isoToday(); }); if (!$('#wdTo').value) applyPreset('prev'); }
+  const prevSel = new Set($$('#wdPortals input:checked').map(i => i.value));
+  $('#wdPortals').innerHTML = PORTALS.map(p => { const n = Vault.snapsOf(p.id).length; const ck = prevSel.size ? prevSel.has(p.id) : n > 0; return `<label class="chk" style="color:${p.color}"><input type="checkbox" value="${p.id}" ${ck ? 'checked' : ''}> ${esc(p.short)} <span class="tiny muted">(${n})</span></label>`; }).join('');
+}
+function applyPreset(k) {
+  const dates = availableDates(); if (!dates.length) return;
+  const last = dates[dates.length - 1]; let from = dates[0], to = last;
+  if (k === 'prev') from = dates.length > 1 ? dates[dates.length - 2] : last;
+  else if (k === '7') from = addDays(last, -7);
+  else if (k === '30') from = addDays(last, -30);
+  else if (k === 'month') from = last.slice(0, 8) + '01';
+  $('#wdFrom').value = from; $('#wdTo').value = to;
+}
+function summ(d, v) { return { R: secR(d, v), C: secC(d, v), P: secP(d, v), pct: secPct(d, v) }; }
+async function computeWD(from, to, pids) {
+  const res = { from, to, days: daysBetween(from, to), generated: nowStamp(), items: [] };
+  for (const pid of pids) {
+    const p = P_BY[pid], list = Vault.snapsOf(pid), item = { p, notes: [], sections: [] };
+    const endE = [...list].reverse().find(s => s.date <= to);
+    let startE = [...list].reverse().find(s => s.date <= from);
+    if (!endE) { item.status = 'nodata'; item.notes.push(`No ${p.short} snapshot on or before ${dmy(to)}.`); res.items.push(item); continue; }
+    if (!startE) { startE = list.find(s => s.date > from && s.date < endE.date); if (startE) item.notes.push(`No ${p.short} snapshot on/before ${dmy(from)} — baseline taken from ${dmy(startE.date)}.`); }
+    else if (startE.date !== from) item.notes.push(`${p.short}: baseline is the snapshot of ${dmy(startE.date)} (nearest before ${dmy(from)}).`);
+    if (endE.date !== to) item.notes.push(`${p.short}: end figures are from ${dmy(endE.date)} (latest on/before ${dmy(to)}).`);
+    const single = !startE || startE.id === endE.id;
+    if (single) item.notes.push(`${p.short}: only one snapshot in this period — save another date to measure work done.`);
+    item.status = single ? 'single' : 'ok'; item.startDate = single ? null : startE.date; item.endDate = endE.date;
+    const E = await Vault.getSnapshot(endE.id), S = single ? null : await Vault.getSnapshot(startE.id);
+    p.sections.forEach(d => {
+      const es = E.sections[d.id]; if (!es) return;
+      const ss = S && S.sections[d.id];
+      const e = summ(d, es.totals), s = ss ? summ(d, ss.totals) : null;
+      const dR = s ? e.R - s.R : null, dC = s ? e.C - s.C : null;
+      const map = new Map();
+      const put = (x, w) => { const k = normKey(x.name); const o = map.get(k) || { name: x.name }; o[w] = summ(d, x.v); map.set(k, o); };
+      if (ss) ss.stations.forEach(x => put(x, 's')); es.stations.forEach(x => put(x, 'e'));
+      const stations = [...map.values()].map(o => {
+        const a = o.s || { R: 0, C: 0, P: 0, pct: 0 }, b = o.e || { R: 0, C: 0, P: 0, pct: 0 };
+        const r = { name: o.name, sR: ss ? a.R : null, eR: b.R, sP: ss ? a.P : null, eP: b.P, pctE: b.pct, dR: ss ? b.R - a.R : null, dC: ss ? b.C - a.C : null, dP: ss ? b.P - a.P : null };
+        r.work = ss ? (d.work === 'R' ? r.dR : r.dC) : null; return r;
+      }).sort((x, y) => (y.work ?? 0) - (x.work ?? 0) || (y.dR ?? 0) - (x.dR ?? 0) || x.name.localeCompare(y.name));
+      const sec = { d, s, e, dR, dC, work: s ? (d.work === 'R' ? dR : dC) : null, dP: s ? e.P - s.P : null, stations };
+      if (s && (dR < 0 || dC < 0)) item.notes.push(`${d.label}: portal totals decreased in this period (${dR < 0 ? 'received ' + dR : ''}${dR < 0 && dC < 0 ? ', ' : ''}${dC < 0 ? 'closed ' + dC : ''}) — usually a data correction or reset in the portal; shown as-is.`);
+      item.sections.push(sec);
+    });
+    res.items.push(item);
+  }
+  return res;
+}
+const secShort = (p, d) => p.sections.length > 1 ? `${p.short}-${d.id === 'received' ? 'Rcvd' : d.id === 'sent' ? 'Sent' : d.id}` : p.short;
+function wdRows(res) {
+  const rows = [];
+  res.items.forEach(it => {
+    if (it.status === 'nodata') { rows.push({ it, sec: null, label: it.p.short }); return; }
+    it.sections.forEach(sec => rows.push({ it, sec, label: secShort(it.p, sec.d) }));
+  });
+  return rows;
+}
+function wdTotals(res) { let R = 0, C = 0, W = 0; wdRows(res).forEach(r => { if (r.sec && r.sec.s) { R += Math.max(0, r.sec.dR); C += Math.max(0, r.sec.dC); W += Math.max(0, r.sec.work); } }); return { R, C, W }; }
+function renderWD(res, mode) {
+  const rows = wdRows(res), T = wdTotals(res);
+  let h = `<div class="rep-h"><div><h2>WORK DONE — ${mode === 'detail' ? 'DETAILED REPORT' : 'AT A GLANCE'}</h2><p>Period <b>${dmy(res.from)}</b> → <b>${dmy(res.to)}</b> · ${res.days} day(s) · ${esc(ORG)}</p></div><div class="tiny muted mono">Generated ${res.generated}</div></div>
+  <div class="kpis">
+    <div class="glass kpi" style="--pc:var(--cyan)"><div class="n" data-v="${T.R}">0</div><div class="l">Requests received (all portals)</div></div>
+    <div class="glass kpi" style="--pc:var(--green)"><div class="n" data-v="${T.C}">0</div><div class="l">Closed / completed (all portals)</div></div>
+    <div class="glass kpi" style="--pc:var(--mag)"><div class="n" data-v="${T.W}">0</div><div class="l">Total work done</div></div>
+    <div class="glass kpi" style="--pc:var(--violet)"><div class="n">${rows.filter(r => r.sec && r.sec.s).length} / ${rows.length}</div><div class="l">Portal sections compared</div></div>
+  </div><div class="gcards">`;
+  rows.forEach(r => {
+    const p = r.it.p;
+    if (!r.sec) { h += `<div class="glass gcard" style="--pc:${p.color}"><h4>${esc(r.label)}<small>no data</small></h4><div class="ft">No snapshot on or before ${dmy(res.to)}</div></div>`; return; }
+    const s = r.sec, d = s.d, ok = !!s.s;
+    h += `<div class="glass gcard" style="--pc:${p.color}"><h4>${esc(d.label)}<small>${ok ? dmy(r.it.startDate) + ' → ' + dmy(r.it.endDate) : 'as on ' + dmy(r.it.endDate)}</small></h4>
+      <div class="gg"><div><b ${ok ? `data-v="${s.dR}"` : ''}>${ok ? 0 : '—'}</b><span>${esc(d.rl)} ↑</span></div><div><b ${ok ? `data-v="${s.dC}"` : ''}>${ok ? 0 : '—'}</b><span>${esc(d.cl)} ↑</span></div>
+      <div><b>${ok ? fmtN(s.s.P) + ' → ' + fmtN(s.e.P) : fmtN(s.e.P)}</b><span>Pending</span></div><div><b>${s.e.pct.toFixed(1)}%</b><span>${esc(d.pctl || 'Completion')}</span></div></div>
+      <div class="ft">${ok ? `WORK DONE: <b style="color:#fff">${fmtN(s.work)}</b>${d.work === 'R' ? ' (increase in requests)' : ''}` : 'Only one snapshot — no comparison'}</div></div>`;
+  });
+  h += `</div><div class="glass card" style="margin-bottom:18px"><h3>Received vs work done</h3><canvas class="chart" id="wdChart"></canvas></div>`;
+  const gl = rows.map(r => {
+    if (!r.sec) return { name: r.label, dates: 'no data', dR: null, dC: null, work: null, pend: '—', pct: null };
+    const s = r.sec;
+    return { name: r.label, dates: s.s ? dmy(r.it.startDate) + ' → ' + dmy(r.it.endDate) : 'only ' + dmy(r.it.endDate), dR: s.s ? s.dR : null, dC: s.s ? s.dC : null, work: s.work, pend: s.s ? fmtN(s.s.P) + ' → ' + fmtN(s.e.P) : fmtN(s.e.P), pct: s.e.pct };
+  });
+  h += `<div class="sec"><h3 class="sec-t">Portal-wise summary</h3>${tableHTML({ cols: [{ k: 'name', l: 'Portal', f: 'name' }, { k: 'dates', l: 'Data compared', f: 'txt' }, { k: 'dR', l: 'Received', f: 'd' }, { k: 'dC', l: 'Closed', f: 'd' }, { k: 'work', l: 'Work done', f: 'd' }, { k: 'pend', l: 'Pending start → end', f: 'txt' }, { k: 'pct', l: 'Completion % (end)', f: 'pct' }], rows: gl, tier: v => v >= 90 ? 'g' : v >= 70 ? 'm' : 'b' })}</div>`;
+  if (mode === 'detail') rows.forEach(r => {
+    if (!r.sec) return; const s = r.sec, p = r.it.p, d = s.d;
+    h += `<div class="sec" style="--pc:${p.color}"><h3 class="sec-t">${esc(d.label)} — station-wise <span class="tiny muted" style="font-family:var(--fb);letter-spacing:0">(${s.s ? dmy(r.it.startDate) + ' → ' + dmy(r.it.endDate) : 'single snapshot ' + dmy(r.it.endDate)})</span></h3>
+      ${tableHTML({ cols: [{ k: 'name', l: 'Police Station', f: 'name' }, { k: 'dR', l: d.rl + ' ↑', f: 'd' }, { k: 'dC', l: d.cl + ' ↑', f: 'd' }, { k: 'work', l: 'Work done', f: 'd' }, { k: 'sP', l: 'Pending (start)', f: 'n' }, { k: 'eP', l: 'Pending (end)', f: 'n' }, { k: 'dP', l: 'Change in pending', f: 'dp' }, { k: 'pctE', l: (d.pctl || 'Completion %') + ' (end)', f: 'pct' }], rows: s.stations, totals: { name: 'TOTAL', dR: s.dR, dC: s.dC, work: s.work, sP: s.s ? s.s.P : null, eP: s.e.P, dP: s.dP, pctE: s.e.pct }, tier: v => tierOf(d, v) })}</div>`;
+  });
+  const notes = [`<li>Received = increase in the portal's cumulative total between the two snapshots; Closed = increase in closed/completed.</li>`, `<li>Sahayog work done = increase in URL requests (as specified). CEIR completion = recovered ÷ traceability generated. NCRP closed includes FIR registered.</li>`].concat(res.items.flatMap(it => it.notes).map(n => `<li>${esc(n)}</li>`));
+  h += `<ul class="notes">${notes.join('')}</ul>`;
+  $('#wdReport').innerHTML = h; fillTables($('#wdReport')); animateCounts($('#wdReport'));
+  drawChart($('#wdChart'), rows.filter(r => r.sec && r.sec.s).map(r => ({ label: r.label, a: Math.max(0, r.sec.dR), b: Math.max(0, r.sec.work), color: r.it.p.color })));
+}
+function drawChart(cv, items) {
+  if (!cv) return; const dpr = Math.min(devicePixelRatio || 1, 2), W = cv.clientWidth, H = cv.clientHeight; cv.width = W * dpr; cv.height = H * dpr;
+  const x = cv.getContext('2d'); x.setTransform(dpr, 0, 0, dpr, 0, 0);
+  if (!items.length) { x.fillStyle = '#8fb3c9'; x.font = '15px Rajdhani, sans-serif'; x.fillText('No portal has two snapshots in this period.', 16, 40); return; }
+  const L = 46, B = 40, T = 40, max = Math.max(1, ...items.flatMap(i => [i.a, i.b])); const gw = (W - L - 10) / items.length, bw = Math.min(34, gw * .3);
+  const t0 = performance.now();
+  const draw = now => {
+    const k = NetFx.reduced ? 1 : Math.min(1, (now - t0) / 800), e = 1 - Math.pow(1 - k, 3);
+    x.clearRect(0, 0, W, H); x.font = '11px "Share Tech Mono", monospace';
+    for (let g = 0; g <= 4; g++) { const y = T + (H - T - B) * (1 - g / 4); x.strokeStyle = 'rgba(0,229,255,.1)'; x.beginPath(); x.moveTo(L, y); x.lineTo(W - 6, y); x.stroke(); x.fillStyle = '#5d7d93'; x.textAlign = 'right'; x.fillText(fmtN(Math.round(max * g / 4)), L - 6, y + 4); }
+    items.forEach((it, i) => {
+      const cx = L + gw * i + gw / 2; const hA = (H - T - B) * it.a / max * e, hB = (H - T - B) * it.b / max * e;
+      const bar = (bx, hh, c1, c2, val) => { const y = H - B - hh; const g = x.createLinearGradient(0, y, 0, H - B); g.addColorStop(0, c1); g.addColorStop(1, c2); x.fillStyle = g; x.shadowColor = c1; x.shadowBlur = 12; x.fillRect(bx, y, bw, hh); x.shadowBlur = 0; if (k === 1) { x.fillStyle = '#dff6ff'; x.textAlign = 'center'; x.fillText(fmtN(val), bx + bw / 2, y - 5); } };
+      bar(cx - bw - 2, hA, '#00e5ff', 'rgba(0,229,255,.15)', it.a); bar(cx + 2, hB, '#00ff9d', 'rgba(0,255,157,.15)', it.b);
+      x.fillStyle = it.color; x.textAlign = 'center'; x.font = 'bold 12px Rajdhani, sans-serif'; x.fillText(it.label, cx, H - B + 16); x.font = '11px "Share Tech Mono", monospace';
+    });
+    x.textAlign = 'left'; x.fillStyle = '#00e5ff'; x.fillRect(L, 6, 10, 10); x.fillStyle = '#dff6ff'; x.fillText('Received', L + 15, 15); x.fillStyle = '#00ff9d'; x.fillRect(L + 90, 6, 10, 10); x.fillStyle = '#dff6ff'; x.fillText('Work done', L + 105, 15);
+    if (k < 1) requestAnimationFrame(draw);
+  };
+  requestAnimationFrame(draw);
+}
+let lastWD = null;
+async function runWD(mode) {
+  const from = $('#wdFrom').value, to = $('#wdTo').value, m = $('#wdMsg');
+  const pids = $$('#wdPortals input:checked').map(i => i.value);
+  if (!from || !to) { m.textContent = 'Choose both dates.'; m.className = 'msg err'; return; }
+  if (from > to) { m.textContent = '"From" must be on or before "To".'; m.className = 'msg err'; return; }
+  if (!pids.length) { m.textContent = 'Select at least one portal.'; m.className = 'msg err'; return; }
+  m.textContent = ''; const res = await withBusy('DECRYPTING SNAPSHOTS', () => computeWD(from, to, pids));
+  lastWD = { res, mode }; renderWD(res, mode);
+  $('#wdOut').classList.remove('hidden'); $('#wdOutTitle').textContent = (mode === 'detail' ? 'DETAILED REPORT · ' : 'AT A GLANCE · ') + dmy(from) + ' → ' + dmy(to);
+  await Vault.log('Work done report generated', `${mode} ${dmy(from)} to ${dmy(to)}`);
+  $('#wdOut').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/* ---------------- export gate ---------------- */
+let exportOkUntil = 0, exportPdfPass = '';
+async function exportGate(kind, what) {
+  const need = Vault.settings.exportAuth && Date.now() > exportOkUntil;
+  if (!need) return { pdfPass: kind === 'pdf' ? exportPdfPass : '' };
+  const r = await modal({
+    title: 'Authorise export', ok: 'Export',
+    html: `<p class="tiny" style="margin:0">Exported files leave the encrypted vault — handle them as confidential documents.</p>
+      <input type="password" id="exPass" placeholder="Master passphrase" autocomplete="off">
+      ${kind === 'pdf' ? '<input type="password" id="exPdf" placeholder="Optional: password to open the PDF" autocomplete="off">' : ''}`,
+    validate: async m => { const k = await Vault.checkPass($('#exPass', m).value); if (!k) { toast('Wrong passphrase.', 'err'); return false; } return { pdfPass: kind === 'pdf' ? $('#exPdf', m).value : '' }; }
+  });
+  if (!r) return null;
+  exportOkUntil = Date.now() + 5 * 60000; if (kind === 'pdf') exportPdfPass = r.pdfPass;
+  return r;
+}
+
+/* ---------------- PDF helpers ---------------- */
+function newPdf(pdfPass) {
+  needLib('jsPDF'); const { jsPDF } = window.jspdf; const o = { unit: 'mm', format: 'a4', orientation: 'p' };
+  if (pdfPass) o.encryption = { userPassword: pdfPass, ownerPassword: pdfPass + '#' + randId().slice(0, 8), userPermissions: ['print'] };
+  return new jsPDF(o);
+}
+function pdfBand(doc, color, title, sub1, sub2) {
+  const W = doc.internal.pageSize.getWidth();
+  doc.setFillColor(NAVY[0], NAVY[1], NAVY[2]); doc.rect(0, 0, W, 30, 'F');
+  doc.setFillColor(color[0], color[1], color[2]); doc.rect(0, 30, W, 1.8, 'F');
+  doc.setTextColor(255, 255, 255); doc.setFont('helvetica', 'bold'); doc.setFontSize(14); doc.text(title, 12, 11);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(185, 215, 232); doc.text(sub1, 12, 18.5); doc.text(sub2, 12, 24.5);
+  doc.setTextColor(0, 0, 0); return 38;
+}
+function pdfCards(doc, y, color, cards) {
+  const W = doc.internal.pageSize.getWidth(), gap = 4, n = cards.length, cw = (W - 24 - gap * (n - 1)) / n, ch = 21;
+  cards.forEach((c, i) => {
+    const x = 12 + i * (cw + gap);
+    doc.setDrawColor(215, 222, 230); doc.setFillColor(247, 250, 252); doc.roundedRect(x, y, cw, ch, 2, 2, 'FD');
+    doc.setFillColor(color[0], color[1], color[2]); doc.rect(x, y + 2, 1.2, ch - 4, 'F');
+    doc.setTextColor(color[0], color[1], color[2]); doc.setFont('helvetica', 'bold'); doc.setFontSize(13.5); doc.text(String(c[0]), x + 4, y + 9.5);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(6.8); doc.setTextColor(90, 105, 120); doc.text(doc.splitTextToSize(String(c[1]).toUpperCase(), cw - 6), x + 4, y + 14.5);
+  });
+  doc.setTextColor(0, 0, 0); return y + ch + 6;
+}
+function pdfFinish(doc, footer) {
+  const n = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= n; i++) {
+    doc.setPage(i); const W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight();
+    if (Vault.settings.watermark) { try { doc.saveGraphicsState(); doc.setGState(new doc.GState({ opacity: 0.07 })); doc.setFont('helvetica', 'bold'); doc.setFontSize(54); doc.setTextColor(20, 40, 70); doc.text('CONFIDENTIAL', W / 2 - 62, H / 2 + 38, { angle: 35 }); doc.restoreGraphicsState(); } catch (e) { } }
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(140, 150, 165);
+    doc.text(footer + '  •  Generated ' + nowStamp(), 12, H - 7);
+    doc.text(`Page ${i} of ${n}`, W - 12, H - 7, { align: 'right' });
+  }
+}
+function tierRgb(t) { return { g: { bg: [226, 244, 233], fg: [20, 105, 58] }, m: { bg: [252, 240, 213], fg: [122, 92, 10] }, b: { bg: [250, 233, 231], fg: [150, 32, 25] } }[t]; }
+const fmtCell = (c, v) => c.money ? fmtMoneyPdf(v) : fmtN(v);
+
+/* ---------------- portal exports ---------------- */
+async function exportPortal(p, kind) {
+  const snap = PS[p.id].current; if (!snap) return;
+  const g = await exportGate(kind); if (!g) return;
+  const base = `${p.short}_Report_${dmy(snap.date)}`;
+  if (p.id === 'MRM' && snap.report) return exportMRM(p, snap, kind, g);
+  try {
+    if (kind === 'pdf') {
+      const doc = newPdf(g.pdfPass); let first = true;
+      p.sections.forEach(d => {
+        const sec = snap.sections[d.id]; if (!sec) return; if (!first) doc.addPage(); first = false;
+        const s = snap.summary[d.id], c = p.print;
+        let y = pdfBand(doc, c, `${p.short} — ${d.label} — Station-wise Report`, `${p.full}  •  Data as on ${dmy(snap.date)}${snap.meta && snap.meta.from ? `  •  Period ${snap.meta.from} to ${snap.meta.to}` : ''}`, ORG);
+        const cards = [[fmtN(s.R), d.rl], [fmtN(s.C), d.cl], [fmtN(s.P), d.pl], [s.pct.toFixed(2) + '%', d.pctl || 'Completion %']];
+        d.cols.filter(x => x.money).forEach(x => cards.push([fmtMoneyPdf(sec.totals[x.k]), x.l]));
+        y = pdfCards(doc, y, c, cards);
+        doc.setFontSize(8.5); doc.setTextColor(40, 50, 60);
+        const worst = sec.stations.filter(x => secR(d, x.v) > 0).sort((a, b) => secPct(d, a.v) - secPct(d, b.v)).slice(0, 3).map(x => `${x.name} (${secPct(d, x.v).toFixed(1)}%)`);
+        const line = doc.splitTextToSize(`•  ${s.n} stations. Overall ${(d.pctl || 'completion').toLowerCase()} ${s.pct.toFixed(2)}%.${worst.length ? ' Lowest: ' + worst.join(', ') + '.' : ''}`, doc.internal.pageSize.getWidth() - 24);
+        doc.text(line, 12, y); y += line.length * 4 + 3;
+        const head = [['#', 'Police Station'].concat(d.cols.map(x => x.l)).concat([d.pctl || '% Completion'])];
+        const body = sec.stations.map((x, i) => [i + 1, x.name].concat(d.cols.map(cc => fmtCell(cc, x.v[cc.k]))).concat([secPct(d, x.v).toFixed(2) + '%']));
+        body.push(['', 'TOTAL'].concat(d.cols.map(cc => fmtCell(cc, sec.totals[cc.k]))).concat([s.pct.toFixed(2) + '%']));
+        const H = doc.internal.pageSize.getHeight(); const rowH = Math.max(3.2, Math.min(7, (H - 14 - y) / (body.length + 1)));
+        const fs = Math.max(5.2, Math.min(8.5, rowH * 1.25)); const pad = Math.max(0.6, Math.min(2, rowH * .22));
+        const lastCol = d.cols.length + 2;
+        doc.autoTable({
+          startY: y, head, body, theme: 'grid', margin: { left: 12, right: 12, bottom: 14 },
+          styles: { fontSize: fs, cellPadding: pad, halign: 'center', valign: 'middle', lineColor: [215, 222, 230] },
+          headStyles: { fillColor: c, textColor: 255, fontStyle: 'bold', fontSize: Math.min(fs, 7.5) },
+          columnStyles: { 1: { halign: 'left', fontStyle: 'bold' } },
+          didParseCell: dd => {
+            if (dd.section !== 'body') return;
+            if (dd.row.index === body.length - 1) { dd.cell.styles.fillColor = NAVY; dd.cell.styles.textColor = 255; dd.cell.styles.fontStyle = 'bold'; return; }
+            if (dd.column.index === lastCol) { const x = sec.stations[dd.row.index]; if (!x) return; const t = tierRgb(tierOf(d, secPct(d, x.v))); dd.cell.styles.fillColor = t.bg; dd.cell.styles.textColor = t.fg; dd.cell.styles.fontStyle = 'bold'; }
+          }
+        });
+      });
+      pdfFinish(doc, `${p.short} Portal Report • ${ORG} • Confidential`);
+      doc.save(base + '.pdf');
+    } else {
+      needLib('XLSX'); const wb = XLSX.utils.book_new();
+      p.sections.forEach(d => {
+        const sec = snap.sections[d.id]; if (!sec) return; const s = snap.summary[d.id];
+        const aoa = [[`${p.short} — ${d.label} — Station-wise Report`], [`${ORG} • Data as on ${dmy(snap.date)}`], [],
+        ['S.No', 'Police Station'].concat(d.cols.map(c => c.l)).concat([d.pctl || '% Completion'])];
+        sec.stations.forEach((x, i) => aoa.push([i + 1, x.name].concat(d.cols.map(c => num(x.v[c.k]))).concat([Number(secPct(d, x.v).toFixed(2))])));
+        aoa.push(['', 'TOTAL'].concat(d.cols.map(c => num(sec.totals[c.k]))).concat([Number(s.pct.toFixed(2))]));
+        const ws = XLSX.utils.aoa_to_sheet(aoa); ws['!cols'] = [{ wch: 6 }, { wch: 30 }].concat(d.cols.map(c => ({ wch: Math.max(12, c.l.length + 2) }))).concat([{ wch: 14 }]);
+        ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: d.cols.length + 2 } }, { s: { r: 1, c: 0 }, e: { r: 1, c: d.cols.length + 2 } }];
+        XLSX.utils.book_append_sheet(wb, ws, sheetName(p.sections.length > 1 ? `${p.short} ${d.id}` : p.short));
+      });
+      XLSX.writeFile(wb, base + '.xlsx');
+    }
+    await Vault.log('Export', `${p.short} ${kind.toUpperCase()} as on ${dmy(snap.date)}`);
+    toast('Export ready: ' + base + '.' + kind, 'ok');
+  } catch (e) { console.error(e); toast('Export failed: ' + e.message, 'err', 7000); }
+}
+function sheetName(n, used) { let s = String(n).replace(/[\\\/\?\*\[\]:]/g, ' ').slice(0, 31); if (used) { let i = 2; const b = s.slice(0, 28); while (used.has(s)) s = b + ' ' + (i++); used.add(s); } return s; }
+
+/* ---------------- work done exports ---------------- */
+async function exportWD(kind) {
+  if (!lastWD) return; const { res, mode } = lastWD; const g = await exportGate(kind); if (!g) return;
+  const rows = wdRows(res), T = wdTotals(res);
+  const base = `Work_Done_${mode === 'detail' ? 'Detailed' : 'At_a_Glance'}_${dmy(res.from)}_to_${dmy(res.to)}`;
+  const dtxt = v => v === null || v === undefined ? '-' : (v > 0 ? '+' : '') + fmtN(v);
+  const glance = rows.map(r => {
+    if (!r.sec) return [r.label, 'No data', '-', '-', '-', '-', '-'];
+    const s = r.sec; return [s.d.label, s.s ? `${dmy(r.it.startDate)} to ${dmy(r.it.endDate)}` : `Only ${dmy(r.it.endDate)}`, dtxt(s.dR), dtxt(s.dC), dtxt(s.work), s.s ? `${fmtN(s.s.P)} -> ${fmtN(s.e.P)}` : fmtN(s.e.P), s.e.pct.toFixed(2) + '%'];
+  });
+  const notes = ['Received = increase in the cumulative portal total between the two snapshots; Closed = increase in closed/completed.', 'Sahayog work done = increase in URL requests. CEIR completion = recovered / traceability generated. NCRP closed includes FIR registered.'].concat(res.items.flatMap(it => it.notes));
+  try {
+    if (kind === 'pdf') {
+      const doc = newPdf(g.pdfPass); const W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight(); const c = [0, 150, 110];
+      let y = pdfBand(doc, c, `WORK DONE REPORT — ${mode === 'detail' ? 'DETAILED' : 'AT A GLANCE'}`, `Period: ${dmy(res.from)} to ${dmy(res.to)}  (${res.days} day${res.days === 1 ? '' : 's'})`, ORG);
+      y = pdfCards(doc, y, c, [[fmtN(T.R), 'Requests received (all portals)'], [fmtN(T.C), 'Closed / completed (all portals)'], [fmtN(T.W), 'Total work done'], [`${rows.filter(r => r.sec && r.sec.s).length} / ${rows.length}`, 'Portal sections compared']]);
+      doc.autoTable({
+        startY: y, theme: 'grid', margin: { left: 12, right: 12, bottom: 14 },
+        head: [['Portal', 'Data compared', 'Received', 'Closed', 'Work done', 'Pending (start -> end)', 'Completion % (end)']], body: glance,
+        styles: { fontSize: 8.2, cellPadding: 2, halign: 'center', valign: 'middle', lineColor: [215, 222, 230] },
+        headStyles: { fillColor: NAVY, textColor: 255, fontStyle: 'bold', fontSize: 7.8 }, columnStyles: { 0: { halign: 'left', fontStyle: 'bold' } },
+        didParseCell: dd => { if (dd.section !== 'body') return; const r = rows[dd.row.index]; if (!r) return; if (dd.column.index === 0) { const pc = r.it.p.print; dd.cell.styles.textColor = pc; } if (dd.column.index === 4 && r.sec && r.sec.s) { dd.cell.styles.fillColor = [226, 244, 233]; dd.cell.styles.fontStyle = 'bold'; } }
+      });
+      y = doc.lastAutoTable.finalY + 8;
+      const items = rows.filter(r => r.sec && r.sec.s).map(r => ({ label: r.label, a: Math.max(0, r.sec.dR), b: Math.max(0, r.sec.work) }));
+      if (items.length) {
+        if (y + 72 > H - 14) { doc.addPage(); y = 16; }
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(NAVY[0], NAVY[1], NAVY[2]); doc.text('RECEIVED vs WORK DONE', 12, y); y += 4;
+        pdfBars(doc, 12, y, W - 24, 60, items); y += 68;
+      }
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(7.8); doc.setTextColor(70, 80, 95);
+      notes.forEach(n => { const l = doc.splitTextToSize('• ' + n, W - 24); if (y + l.length * 3.6 > H - 14) { doc.addPage(); y = 16; } doc.text(l, 12, y); y += l.length * 3.6 + 1; });
+      if (mode === 'detail') rows.forEach(r => {
+        if (!r.sec) return; const s = r.sec, d = s.d, pc = r.it.p.print;
+        doc.addPage();
+        let yy = pdfBand(doc, pc, `${d.label} — Station-wise Work Done`, s.s ? `Baseline ${dmy(r.it.startDate)}  ->  ${dmy(r.it.endDate)}` : `Single snapshot ${dmy(r.it.endDate)} (no comparison)`, ORG);
+        yy = pdfCards(doc, yy, pc, [[dtxt(s.dR), d.rl + ' (increase)'], [dtxt(s.dC), d.cl + ' (increase)'], [dtxt(s.work), 'Work done'], [s.s ? `${fmtN(s.s.P)} -> ${fmtN(s.e.P)}` : fmtN(s.e.P), 'Pending start -> end'], [s.e.pct.toFixed(2) + '%', (d.pctl || 'Completion %') + ' (end)']]);
+        const body = s.stations.map((x, i) => [i + 1, x.name, dtxt(x.dR), dtxt(x.dC), dtxt(x.work), x.sP === null ? '-' : fmtN(x.sP), fmtN(x.eP), dtxt(x.dP), x.pctE.toFixed(2) + '%']);
+        body.push(['', 'TOTAL', dtxt(s.dR), dtxt(s.dC), dtxt(s.work), s.s ? fmtN(s.s.P) : '-', fmtN(s.e.P), dtxt(s.dP), s.e.pct.toFixed(2) + '%']);
+        doc.autoTable({
+          startY: yy, theme: 'grid', margin: { left: 12, right: 12, bottom: 14 },
+          head: [['#', 'Police Station', d.rl + ' +', d.cl + ' +', 'Work done', 'Pending (start)', 'Pending (end)', 'Change in pending', (d.pctl || 'Completion %') + ' (end)']], body,
+          styles: { fontSize: 7.6, cellPadding: 1.6, halign: 'center', valign: 'middle', lineColor: [215, 222, 230] },
+          headStyles: { fillColor: pc, textColor: 255, fontStyle: 'bold', fontSize: 7 }, columnStyles: { 1: { halign: 'left', fontStyle: 'bold' } },
+          didParseCell: dd => {
+            if (dd.section !== 'body') return;
+            if (dd.row.index === body.length - 1) { dd.cell.styles.fillColor = NAVY; dd.cell.styles.textColor = 255; dd.cell.styles.fontStyle = 'bold'; return; }
+            const x = s.stations[dd.row.index]; if (!x) return;
+            if (dd.column.index === 4 && x.work > 0) { dd.cell.styles.fillColor = [226, 244, 233]; dd.cell.styles.textColor = [20, 105, 58]; dd.cell.styles.fontStyle = 'bold'; }
+            if (dd.column.index === 7 && x.dP > 0) dd.cell.styles.textColor = [150, 32, 25];
+            if (dd.column.index === 8) { const t = tierRgb(tierOf(d, x.pctE)); dd.cell.styles.fillColor = t.bg; dd.cell.styles.textColor = t.fg; }
+          }
+        });
+      });
+      pdfFinish(doc, `Work Done Report • ${ORG} • Confidential`);
+      doc.save(base + '.pdf');
+    } else {
+      needLib('XLSX'); const wb = XLSX.utils.book_new(); const used = new Set();
+      const aoa = [[`WORK DONE REPORT — ${mode === 'detail' ? 'DETAILED' : 'AT A GLANCE'}`], [`${ORG} • Period ${dmy(res.from)} to ${dmy(res.to)} (${res.days} days) • Generated ${res.generated}`], [],
+      ['Requests received (all portals)', T.R], ['Closed / completed (all portals)', T.C], ['Total work done', T.W], [],
+      ['Portal', 'Data compared', 'Received', 'Closed', 'Work done', 'Pending (start)', 'Pending (end)', 'Completion % (end)']];
+      rows.forEach(r => { if (!r.sec) { aoa.push([r.label, 'No data']); return; } const s = r.sec; aoa.push([s.d.label, s.s ? `${dmy(r.it.startDate)} to ${dmy(r.it.endDate)}` : `Only ${dmy(r.it.endDate)}`, s.dR, s.dC, s.work, s.s ? s.s.P : null, s.e.P, Number(s.e.pct.toFixed(2))]); });
+      aoa.push([]); aoa.push(['Notes']); notes.forEach(n => aoa.push([n]));
+      const ws = XLSX.utils.aoa_to_sheet(aoa); ws['!cols'] = [{ wch: 34 }, { wch: 26 }, { wch: 11 }, { wch: 11 }, { wch: 11 }, { wch: 15 }, { wch: 14 }, { wch: 18 }];
+      XLSX.utils.book_append_sheet(wb, ws, sheetName('At a Glance', used));
+      if (mode === 'detail') rows.forEach(r => {
+        if (!r.sec) return; const s = r.sec, d = s.d;
+        const a = [[`${d.label} — Station-wise Work Done`], [s.s ? `Baseline ${dmy(r.it.startDate)} to ${dmy(r.it.endDate)}` : `Single snapshot ${dmy(r.it.endDate)}`], [], ['S.No', 'Police Station', d.rl + ' (increase)', d.cl + ' (increase)', 'Work done', 'Pending (start)', 'Pending (end)', 'Change in pending', (d.pctl || 'Completion %') + ' (end)']];
+        s.stations.forEach((x, i) => a.push([i + 1, x.name, x.dR, x.dC, x.work, x.sP, x.eP, x.dP, Number(x.pctE.toFixed(2))]));
+        a.push(['', 'TOTAL', s.dR, s.dC, s.work, s.s ? s.s.P : null, s.e.P, s.dP, Number(s.e.pct.toFixed(2))]);
+        const w = XLSX.utils.aoa_to_sheet(a); w['!cols'] = [{ wch: 6 }, { wch: 30 }, { wch: 18 }, { wch: 18 }, { wch: 11 }, { wch: 14 }, { wch: 13 }, { wch: 16 }, { wch: 18 }];
+        XLSX.utils.book_append_sheet(wb, w, sheetName(r.label, used));
+      });
+      XLSX.writeFile(wb, base + '.xlsx');
+    }
+    await Vault.log('Export', `Work done ${mode} ${kind.toUpperCase()} ${dmy(res.from)} to ${dmy(res.to)}`);
+    toast('Export ready: ' + base + '.' + kind, 'ok');
+  } catch (e) { console.error(e); toast('Export failed: ' + e.message, 'err', 7000); }
+}
+function pdfBars(doc, x, y, w, h, items) {
+  const max = Math.max(1, ...items.flatMap(i => [i.a, i.b])), bw = Math.min(9, (w - 10) / items.length * .3), base = y + h - 8;
+  doc.setDrawColor(200, 208, 218); doc.setLineWidth(.2);
+  for (let g = 0; g <= 4; g++) { const yy = base - (h - 16) * g / 4; doc.line(x + 10, yy, x + w, yy); doc.setFontSize(6); doc.setTextColor(130, 140, 155); doc.text(fmtN(Math.round(max * g / 4)), x + 9, yy + 1, { align: 'right' }); }
+  const gw2 = (w - 10) / items.length;
+  items.forEach((it, i) => {
+    const cx = x + 10 + gw2 * i + gw2 / 2;
+    const ha = (h - 16) * it.a / max, hb = (h - 16) * it.b / max;
+    doc.setFillColor(0, 150, 190); doc.rect(cx - bw - .5, base - ha, bw, ha, 'F');
+    doc.setFillColor(0, 160, 100); doc.rect(cx + .5, base - hb, bw, hb, 'F');
+    doc.setFontSize(6); doc.setTextColor(40, 50, 60); doc.text(fmtN(it.a), cx - bw / 2 - .5, base - ha - 1, { align: 'center' }); doc.text(fmtN(it.b), cx + bw / 2 + .5, base - hb - 1, { align: 'center' });
+    doc.setFontSize(7); doc.setFont('helvetica', 'bold'); doc.text(it.label, cx, base + 4, { align: 'center' }); doc.setFont('helvetica', 'normal');
+  });
+  doc.setFillColor(0, 150, 190); doc.rect(x + w - 60, y, 3, 3, 'F'); doc.setFillColor(0, 160, 100); doc.rect(x + w - 32, y, 3, 3, 'F');
+  doc.setFontSize(7); doc.setTextColor(40, 50, 60); doc.text('Received', x + w - 56, y + 2.6); doc.text('Work done', x + w - 28, y + 2.6);
+}
+
+/* ---------------- backup & security ---------------- */
+function applySettingsToUI() {
+  const s = Vault.settings;
+  $('#gClientId').value = s.drive.clientId || ''; $('#gAuto').checked = !!s.drive.autoBackup; $('#gKeep').value = s.drive.keep || 30;
+  $('#sLock').value = String(s.autoLockMin || 10); $('#sExportAuth').checked = !!s.exportAuth; $('#sWatermark').checked = !!s.watermark;
+}
+function renderSec() { applySettingsToUI(); renderAudit(); if (Drive.connected()) refreshDriveList(); }
+function renderAudit() {
+  const el = $('#auditLog'); if (!el) return;
+  el.innerHTML = Vault.audit.slice(0, 200).map(a => `<div><b>${esc(new Date(a.ts).toLocaleString('en-IN'))}</b> — ${esc(a.action)}${a.detail ? ' · ' + esc(a.detail) : ''}</div>`).join('') || 'No entries.';
+}
+function gMsg(t, k = 'info') { const m = $('#gMsg'); m.textContent = t; m.className = 'msg ' + k; }
+async function doBackup(silent) {
+  const d = new Date(); const name = `CPS_Backup_${isoOf(d)}_${pad2(d.getHours())}${pad2(d.getMinutes())}${pad2(d.getSeconds())}.cpsvault`;
+  const text = await Vault.backupText();
+  await Drive.upload(name, text);
+  Vault.settings.drive.lastBackup = nowStamp(); Vault.settings.dirty = 0; await Vault.saveSettings();
+  await Vault.log('Drive backup', name);
+  try { await Drive.prune(Vault.settings.drive.keep || 30); } catch (e) { }
+  updateDriveChip(); if (!silent) { gMsg('Encrypted backup uploaded: ' + name, 'ok'); refreshDriveList(); } else toast('Auto-backup to Google Drive complete.', 'ok');
+}
+async function autoBackup() {
+  if (!Vault.settings.drive.autoBackup) return;
+  if (!Drive.connected()) { if (Vault.settings.drive.clientId) toast('Not connected to Google Drive — open Backup & Security and click Backup now.', 'warn', 5000); return; }
+  try { await doBackup(true); } catch (e) { toast('Auto-backup failed: ' + e.message, 'err', 7000); }
+}
+async function refreshDriveList() {
+  const box = $('#gList');
+  try {
+    const files = await Drive.list();
+    box.innerHTML = files.length ? files.map(f => `<div class="bitem"><span>${esc(f.name)}<br><small class="muted">${new Date(f.createdTime).toLocaleString('en-IN')} · ${(Number(f.size || 0) / 1024).toFixed(1)} KB</small></span><button class="btn sm mag" data-rs="${esc(f.id)}">Restore</button><button class="btn sm red" data-dl="${esc(f.id)}" title="Delete from Drive">✕</button></div>`).join('') : '<div class="tiny muted">No backups on Drive yet.</div>';
+  } catch (e) { box.innerHTML = `<div class="msg err">${esc(e.message)}</div>`; }
+}
+function askBackupPass() {
+  return modal({ title: 'Backup passphrase', ok: 'Decrypt', html: '<p class="tiny" style="margin:0">This backup was encrypted with a different passphrase (another device or an older passphrase). Enter that passphrase.</p><input type="password" id="bkPass" autocomplete="off">', validate: m => $('#bkPass', m).value || false });
+}
+async function restoreText(text, source) {
+  const payload = await Vault.openBackup(text, askBackupPass);
+  const n = (payload.index && payload.index.snaps || []).length;
+  const ok = await modal({ title: 'Restore backup?', html: `<p>The backup contains <b>${n}</b> snapshot(s), exported ${esc(new Date(payload.exportedAt).toLocaleString('en-IN'))}.</p><p class="tiny">Snapshots are merged into this vault; for the same portal and date the newer save is kept. Nothing is deleted.</p>`, ok: 'Merge into vault' });
+  if (!ok) return;
+  const r = await withBusy('RE-ENCRYPTING', () => Vault.mergePayload(payload));
+  await Vault.log('Backup restored', `${source}: +${r.added} new, ${r.updated} updated, ${r.skipped} unchanged`);
+  toast(`Restore complete — ${r.added} added, ${r.updated} updated, ${r.skipped} unchanged.`, 'ok', 6000);
+  updateNavCounts(); updateDriveChip(); PORTALS.forEach(p => renderHistory(p.id));
+}
+function wireStatic() {
+  $('#lockBtn').onclick = () => lockNow('Vault locked.');
+  $$('[data-preset]').forEach(b => b.onclick = () => applyPreset(b.dataset.preset));
+  $('#wdGlance').onclick = () => runWD('glance'); $('#wdDetail').onclick = () => runWD('detail');
+  $('#wdPdf').onclick = () => exportWD('pdf'); $('#wdXlsx').onclick = () => exportWD('xlsx');
+  $('#gSaveId').onclick = async () => {
+    const v = $('#gClientId').value.trim();
+    if (v && !/^[\w-]+\.apps\.googleusercontent\.com$/.test(v)) { gMsg('That does not look like an OAuth Client ID (…apps.googleusercontent.com).', 'err'); return; }
+    Vault.settings.drive.clientId = v; Vault.settings.drive.folderId = ''; Drive.client = null; await Vault.saveSettings(); await Vault.log('Drive client ID updated'); gMsg('Client ID saved (encrypted).', 'ok');
+  };
+  $('#gConnect').onclick = async () => { try { gMsg('Opening Google sign-in…'); await Drive.connect(); gMsg('Connected to Google Drive.', 'ok'); await Vault.log('Drive connected'); refreshDriveList(); } catch (e) { gMsg(e.message, 'err'); } };
+  $('#gBackup').onclick = async () => { try { gMsg('Encrypting and uploading…'); await withBusy('UPLOADING ENCRYPTED BACKUP', () => doBackup(false)); } catch (e) { gMsg(e.message, 'err'); } };
+  $('#gRefresh').onclick = () => refreshDriveList();
+  $('#gAuto').onchange = async e => { Vault.settings.drive.autoBackup = e.target.checked; await Vault.saveSettings(); };
+  $('#gKeep').onchange = async e => { Vault.settings.drive.keep = Math.max(3, Number(e.target.value) || 30); await Vault.saveSettings(); };
+  $('#gList').onclick = async e => {
+    const rs = e.target.closest('[data-rs]'), dl = e.target.closest('[data-dl]');
+    try {
+      if (rs) { const text = await withBusy('DOWNLOADING', () => Drive.download(rs.dataset.rs)); await restoreText(text, 'Drive'); }
+      if (dl) { if (!(await modal({ title: 'Delete backup?', html: '<p>Permanently delete this backup file from Google Drive?</p>', ok: 'Delete', danger: true }))) return; await Drive.remove(dl.dataset.dl); await Vault.log('Drive backup deleted'); refreshDriveList(); }
+    } catch (err) { toast(err.message, 'err', 7000); }
+  };
+  $('#fExport').onclick = async () => {
+    const text = await withBusy('ENCRYPTING', () => Vault.backupText());
+    const d = new Date(); downloadBlob(new Blob([text], { type: 'application/octet-stream' }), `CPS_Backup_${isoOf(d)}_${pad2(d.getHours())}${pad2(d.getMinutes())}.cpsvault`);
+    await Vault.log('Local encrypted backup downloaded'); const m = $('#fMsg'); m.textContent = 'Encrypted backup file downloaded.'; m.className = 'msg ok';
+  };
+  $('#fImportBtn').onclick = () => $('#fImport').click();
+  $('#fImport').onchange = async e => { const f = e.target.files[0]; e.target.value = ''; if (!f) return; try { await restoreText(await f.text(), 'File ' + f.name); } catch (err) { const m = $('#fMsg'); m.textContent = err.message; m.className = 'msg err'; } };
+  $('#sLock').onchange = async e => { Vault.settings.autoLockMin = Number(e.target.value); await Vault.saveSettings(); startIdle(); };
+  $('#sExportAuth').onchange = async e => { Vault.settings.exportAuth = e.target.checked; await Vault.saveSettings(); await Vault.log('Export passphrase check ' + (e.target.checked ? 'enabled' : 'disabled')); };
+  $('#sWatermark').onchange = async e => { Vault.settings.watermark = e.target.checked; await Vault.saveSettings(); };
+  $('#cpForm').onsubmit = async e => {
+    e.preventDefault(); const m = $('#cpMsg'); const o = $('#cpOld').value, n1 = $('#cpNew1').value, n2 = $('#cpNew2').value;
+    const err = passPolicy(n1) || (n1 !== n2 ? 'New passphrases do not match.' : '') || (o === n1 ? 'New passphrase must differ from the current one.' : '');
+    if (err) { m.textContent = err; m.className = 'msg err'; return; }
+    try { await withBusy('RE-ENCRYPTING VAULT', () => Vault.changePass(o, n1)); await Vault.log('Master passphrase changed'); $('#cpOld').value = $('#cpNew1').value = $('#cpNew2').value = ''; m.textContent = 'Passphrase changed. All records re-encrypted.'; m.className = 'msg ok'; }
+    catch (x) { m.textContent = x.message; m.className = 'msg err'; }
+  };
+  $('#wipeBtn').onclick = async () => {
+    const ok = await modal({ title: 'Erase vault?', danger: true, ok: 'Erase permanently', html: '<p>This deletes every encrypted snapshot, setting and log from this browser. Type <b>ERASE</b> to confirm.</p><input type="text" id="wipeTxt" autocomplete="off">', validate: m => $('#wipeTxt', m).value === 'ERASE' || (toast('Type ERASE to confirm.', 'warn'), false) });
+    if (!ok) return; await Vault.wipe(); try { sessionStorage.setItem('cps_lockmsg', 'Vault erased from this device.'); } catch (e) { } location.reload();
+  };
+}
+
+/* ---------------- start ---------------- */
+boot();
+
+</script>
+</body>
+</html>
