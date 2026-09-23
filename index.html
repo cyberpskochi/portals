@@ -480,7 +480,7 @@ input.masked{-webkit-text-security:disc}
     </section>
   </main>
 
-  <footer class="credit-bar">© ARUN R</footer>
+  <footer class="credit-bar">© ARUN R <span style="opacity:.5;font-size:.8em;margin-left:8px">v2.1</span></footer>
 </div>
 
 <div id="modal" class="modal hidden" role="dialog" aria-modal="true"></div>
@@ -1442,22 +1442,78 @@ function ceirPincode(records, files) {
 }
 const CEIR_PIN_CARDS = [['total', 'Total Records (Original)', 'var(--cyan)'], ['unique', 'Unique Records (After Dedup)', 'var(--green)'], ['dup', 'Duplicates Removed', 'var(--red)'], ['states', 'States/UTs Covered', 'var(--amber)'], ['traced', '✓ Pincodes Traced', 'var(--violet)'], ['unmapped', 'Unmapped Pincodes', 'var(--mag)']];
 
-/* ---------- UI: upload box (Step 1B) ---------- */
+/* ---------- UI: state-wise / pincode-wise upload card ---------- */
+function ceirTraceCardHTML(p) {
+  return `<div class="glass card corner" style="--pc:var(--violet);margin-bottom:18px" id="ceirTrCard">
+    <h3>3 · State-wise / Pincode-wise report</h3>
+    <p class="tiny muted" style="margin:-4px 0 10px">Upload raw traceability data for state consolidation (multiple files supported). Duplicates are removed by Reporting MSISDN and every pincode is mapped to its state and district. Works on its own, or together with the station file above (then it is added to the station report and its backup).</p>
+    <div class="drop" id="ceirTrDrop" style="--pc:var(--violet)" tabindex="0" role="button">${icon('upload')}<b>Drop traceability files here or click to browse</b><span>.xlsx, .xls, .csv — multiple files supported</span><input type="file" id="ceirTr" accept=".xlsx,.xls,.csv" multiple></div>
+    <div class="files" id="ceirTrFiles"></div>
+    <div class="row" style="margin-top:12px">
+      <label class="f">Reporting period (optional)<input type="text" id="ceirTrPeriod" placeholder="e.g. Jan 2019 to September 2026"></label>
+      <button class="btn primary" id="ceirTrGo" style="--c:var(--violet)" disabled>⚙ GENERATE PINCODE-WISE REPORT</button>
+      <button class="btn sm ghost" id="ceirTrClr">Clear</button>
+    </div>
+    <div class="msg" id="ceirTrMsg"></div>
+  </div>
+  <div id="ceirPinOnly"></div>`;
+}
+const CEIR_TR = { files: [] };
+function ceirTraceReset() { CEIR_TR.files = []; PS.CEIR.trace = null; ceirTrFiles(); $('#ceirTrMsg').textContent = ''; $('#ceirPinOnly').innerHTML = ''; }
+function ceirTrFiles() {
+  $('#ceirTrFiles').innerHTML = CEIR_TR.files.map((f, i) => `<div class="file"><span>📊</span><b title="${esc(f.name)}">${esc(f.name)}</b><span class="tiny muted">${(f.size / 1024).toFixed(1)} KB</span><button class="x" data-ti="${i}" title="Remove">✕</button></div>`).join('');
+  $$('[data-ti]', $('#ceirTrFiles')).forEach(b => b.onclick = () => { CEIR_TR.files.splice(+b.dataset.ti, 1); ceirTrFiles(); });
+  $('#ceirTrGo').disabled = !CEIR_TR.files.length;
+}
 function wireCEIRTrace(p, st) {
   st.trace = null;
-  const inp = $('#ceirTr'), msg = $('#ceirTrMsg');
+  const drop = $('#ceirTrDrop'), inp = $('#ceirTr'), msg = $('#ceirTrMsg');
   const say = (t, k) => { msg.textContent = t; msg.className = 'msg ' + k; };
-  $('#ceirTrBtn').onclick = () => inp.click();
-  $('#ceirTrClr').onclick = () => { st.trace = null; say('', ''); if (st.cache) rebuild(p); };
-  inp.onchange = async () => {
-    const fs = Array.from(inp.files); inp.value = ''; if (!fs.length) return;
-    try {
-      const recs = await withBusy('READING TRACEABILITY DATA', () => readCEIRTrace(fs));
-      st.trace = { records: recs, files: fs.map(f => f.name) };
-      if (st.cache) { rebuild(p); say(`✅ ${fmtN(recs.length)} traceability rows from ${fs.length} file(s) — the pincode-wise report is shown below.`, 'ok'); }
-      else say(`✅ ${fmtN(recs.length)} traceability rows from ${fs.length} file(s). Now load the station file and press PROCESS DATA.`, 'ok');
-    } catch (e) { say('❌ ' + e.message, 'err'); }
+  const add = list => {
+    const ok = Array.from(list).filter(f => /\.(xlsx|xls|csv)$/i.test(f.name));
+    if (!ok.length) { say('Unsupported file type — use .xlsx, .xls or .csv.', 'err'); return; }
+    ok.forEach(f => { if (!CEIR_TR.files.some(x => x.name === f.name && x.size === f.size)) CEIR_TR.files.push(f); });
+    ceirTrFiles(); say(`${CEIR_TR.files.length} traceability file(s) ready — press GENERATE PINCODE-WISE REPORT.`, 'info');
   };
+  drop.addEventListener('click', e => { if (e.target !== inp) inp.click(); });
+  drop.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); inp.click(); } });
+  ['dragover', 'dragenter'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('drag'); }));
+  ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('drag'); }));
+  drop.addEventListener('drop', e => { if (e.dataTransfer.files.length) add(e.dataTransfer.files); });
+  inp.addEventListener('change', () => { if (inp.files.length) add(inp.files); inp.value = ''; });
+  $('#ceirTrClr').onclick = () => { ceirTraceReset(); if (st.cache && !st.viewingId) rebuild(p); };
+  $('#ceirTrGo').onclick = async () => {
+    try {
+      const recs = await withBusy('READING TRACEABILITY DATA', () => readCEIRTrace(CEIR_TR.files));
+      st.trace = { records: recs, files: CEIR_TR.files.map(f => f.name), period: $('#ceirTrPeriod').value.trim() };
+      if (st.cache && !st.viewingId) {
+        $('#ceirPinOnly').innerHTML = ''; rebuild(p);
+        say(`✅ ${fmtN(recs.length)} traceability rows — the pincode-wise report is added below the station report (and to its PDF / Excel and backup).`, 'ok');
+        $('#ceirPin').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        const pin = ceirPincode(recs, st.trace.files); pin.period = st.trace.period;
+        CEIR_TR.pin = pin; const box = $('#ceirPinOnly');
+        box.innerHTML = `<div class="glass res-bar" style="--pc:var(--violet)"><span class="t">◉ PINCODE-WISE REPORT${pin.period ? ' · ' + esc(pin.period) : ''}</span><span class="sp"></span><span class="tiny muted" style="margin-right:6px">Pincode report only — not backed up</span><button class="btn sm primary" data-pin="pdf" style="--c:var(--violet)">⬇ PDF REPORT</button><button class="btn sm" data-pin="xlsx" style="--c:var(--violet)">⬇ EXCEL REPORT</button></div>` + ceirPinHTML(p, pin);
+        animateCounts(box); wireCEIRPin(box);
+        box.querySelectorAll('[data-pin]').forEach(b => b.onclick = () => ceirPinOnlyExport(b.dataset.pin));
+        say(`✅ ${fmtN(recs.length)} traceability rows from ${CEIR_TR.files.length} file(s) — report below. (Load the station file above too if you want it combined and backed up.)`, 'ok');
+        $('#ceirPin', box).scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    } catch (e) { console.error(e); say('❌ ' + e.message, 'err'); }
+  };
+}
+async function ceirPinOnlyExport(kind) {
+  const pin = CEIR_TR.pin; if (!pin) return;
+  const g = await reportDialog(kind, ''); if (!g) return;
+  const date = isoToday(), base = `CEIR_Pincode_Report_${dmy(date)}`;
+  let out;
+  try {
+    out = await withBusy('BUILDING REPORT', () => buildReport(() => {
+      if (kind === 'pdf') { const doc = newPdf(g.pdfPass); ceirPinPdf(doc, pin, date, true); pdfFinish(doc, `CEIR Pincode-wise Report • ${ORG} • Confidential`); savePdf(doc, base + '.pdf'); }
+      else { needLib('XLSX'); const wb = XLSX.utils.book_new(); ceirPinSheets(wb, pin, date); saveXlsx(wb, base + '.xlsx'); }
+    }));
+  } catch (e) { return reportError('CEIR pincode ' + kind, e); }
+  deliver(out, `CEIR pincode-wise ${kind.toUpperCase()} report (not backed up) · ${pin.stats.unique} unique records`);
 }
 
 /* ---------- UI: pincode-wise report ---------- */
@@ -1504,10 +1560,10 @@ function wireCEIRPin(box) {
 }
 
 /* ---------- exports ---------- */
-function ceirPinPdf(doc, pin, date) {
+function ceirPinPdf(doc, pin, date, fresh) {
   const W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight(), mX = 12;
   const gold = [212, 165, 116], navy = [30, 58, 138], blue = [37, 99, 235], orange = [243, 156, 18], ink = [33, 33, 33];
-  doc.addPage(); let y = pdfBand(doc, [95, 55, 165], 'CEIR — Pincode-wise Traceability Report', `Data as on ${dmy(date)}  •  Duplicates removed by Reporting MSISDN`, ORG);
+  if (!fresh) doc.addPage(); let y = pdfBand(doc, [95, 55, 165], 'CEIR — Pincode-wise Traceability Report', `${pin.period ? 'Period: ' + pin.period + '  •  ' : ''}${fresh ? 'Generated ' + dmy(date) : 'Data as on ' + dmy(date)}  •  Duplicates removed by Reporting MSISDN`, ORG);
   doc.setFillColor(...gold); doc.rect(mX, y, W - 2 * mX, 12, 'F'); doc.setTextColor(255, 255, 255); doc.setFont('helvetica', 'bold'); doc.setFontSize(14); doc.text(pin.heading, W / 2, y + 8.2, { align: 'center' }); y += 16;
   const cols = [[52, 152, 219], [46, 204, 113], [231, 76, 60], [243, 156, 18], [155, 89, 182], [26, 188, 156]], bw = (W - 2 * mX - 8) / 3;
   CEIR_PIN_CARDS.forEach((c, i) => {
@@ -1550,7 +1606,7 @@ function ceirPinPdf(doc, pin, date) {
 }
 function ceirPinSheets(wb, pin, date) {
   const add = (name, aoa, cols) => { const ws = XLSX.utils.aoa_to_sheet(aoa); ws['!cols'] = cols.map(w => ({ wch: w })); XLSX.utils.book_append_sheet(wb, ws, name); };
-  const S = pin.stats, top = [[pin.heading], [`${ORG} • Data as on ${dmy(date)}`], []];
+  const S = pin.stats, top = [[pin.heading], [`${ORG} • ${pin.period ? 'Period ' + pin.period + ' • ' : ''}Data as on ${dmy(date)}`], []];
   add('Pincode Summary', top.concat(CEIR_PIN_CARDS.map(c => [c[1].replace('✓ ', ''), S[c[0]]])).concat([[], ['State', 'District', 'Trace Count', '% of State']])
     .concat(pin.states.flatMap(s => s.districts.map(d => [s.state, ceirClean(d.name), d.count, Number((d.count * 100 / (s.total || 1)).toFixed(1))]).concat([[s.state + ' TOTAL', '', s.total, 100]]))), [34, 28, 14, 12]);
   add('Pincode Detail', [['State', 'District', 'Pincode', 'Circle', 'Count']].concat(pin.states.flatMap(s => s.districts.flatMap(d => d.detail.map(x => [s.state, ceirClean(d.name), x[0], x[1], x[2]])))), [30, 26, 10, 26, 8]);
@@ -1799,10 +1855,6 @@ function optsHTML(p) {
   if (p.id === 'SAHAYOG') return `<label class="f">Jurisdiction<input type="text" data-o="city"></label>
     <label class="f">Period from<input type="text" data-o="from" placeholder="DD-MM-YYYY"></label>
     <label class="f">Period to<input type="text" data-o="to" placeholder="= snapshot date"></label>`;
-  if (p.id === 'CEIR') return `<div class="full glass" style="padding:12px 14px;border-color:rgba(179,136,255,.45)"><b class="tiny" style="letter-spacing:.12em;color:var(--violet)">STEP 1B · TRACEABILITY DATA → PINCODE-WISE REPORT (OPTIONAL)</b>
-      <p class="tiny muted" style="margin:6px 0 10px">Upload one or more raw traceability Excel files (Reporting MSISDN, Pincode, Circle/State, Police Station). Duplicates are removed by Reporting MSISDN, every pincode is mapped to its state and district, and the pincode-wise report is added below the station table, in the PDF / Excel report and in the backup.</p>
-      <div class="row"><button class="btn sm" id="ceirTrBtn" style="--c:var(--violet)">📤 Upload traceability file(s)</button><button class="btn sm ghost" id="ceirTrClr">Remove</button><input type="file" id="ceirTr" accept=".xlsx,.xls,.csv" multiple class="hidden"></div>
-      <div class="msg" id="ceirTrMsg"></div></div>`;
   return '';
 }
 function readOpts(p) {
@@ -1838,6 +1890,7 @@ function buildPortalViews() {
         <p class="tiny muted" style="margin:12px 0 0">Click a date to open that record. Data is backed up (encrypted) only when a report is generated — previews are never stored. Records feed the Work Done report.</p>
       </div>
     </div>
+    ${p.id === 'CEIR' ? ceirTraceCardHTML(p) : ''}
     <div id="extra-${p.id}"></div>
     <div id="res-${p.id}"></div>
   </section>`).join('');
@@ -1859,7 +1912,7 @@ function wirePortal(p) {
   inp.addEventListener('change', () => { if (inp.files.length) addFiles(p, inp.files); inp.value = ''; });
   dateI.addEventListener('change', () => { dateI.dataset.touched = '1'; if (dateI.value > isoToday()) { setMsg(p, 'The date cannot be in the future.', 'err'); dateI.value = isoToday(); } if (st.current && !st.viewingId) { st.current.date = dateI.value; renderResult(p.id); } });
   $('#proc-' + p.id).addEventListener('click', () => processPortal(p));
-  $('#clr-' + p.id).addEventListener('click', () => { st.manual = {}; if (p.id === 'MRM') { $('#mrmManMsg').textContent = ''; $('#mrmTpl').disabled = true; } if (p.id === 'CEIR') { st.trace = null; $('#ceirTrMsg').textContent = ''; } st.files = []; st.cache = null; st.cacheSig = ''; st.current = null; st.viewingId = null; dateI.value = ''; delete dateI.dataset.touched; renderFiles(p); $('#res-' + p.id).innerHTML = ''; $('#extra-' + p.id).innerHTML = ''; setMsg(p, ''); renderHistory(p.id); });
+  $('#clr-' + p.id).addEventListener('click', () => { st.manual = {}; if (p.id === 'MRM') { $('#mrmManMsg').textContent = ''; $('#mrmTpl').disabled = true; } if (p.id === 'CEIR') ceirTraceReset();  st.files = []; st.cache = null; st.cacheSig = ''; st.current = null; st.viewingId = null; dateI.value = ''; delete dateI.dataset.touched; renderFiles(p); $('#res-' + p.id).innerHTML = ''; $('#extra-' + p.id).innerHTML = ''; setMsg(p, ''); renderHistory(p.id); });
   $('#res-' + p.id).addEventListener('click', e => { const b = e.target.closest('[data-act]'); if (!b) return; ({ pdf: () => reportFlow(p, 'pdf'), xlsx: () => reportFlow(p, 'xlsx') })[b.dataset.act](); });
   $('#hist-' + p.id).addEventListener('click', async e => {
     const del = e.target.closest('[data-del]'); if (del) { e.stopPropagation(); return deleteSnap(p, del.dataset.del); }
@@ -1907,7 +1960,7 @@ async function processPortal(p) {
 }
 function rebuild(p) {
   const st = PS[p.id]; const built = p.build(st.cache, readOpts(p));
-  if (p.id === 'CEIR' && st.trace) built.report = { pin: ceirPincode(st.trace.records, st.trace.files) };
+  if (p.id === 'CEIR' && st.trace) { built.report = { pin: Object.assign(ceirPincode(st.trace.records, st.trace.files), { period: st.trace.period || '' }) }; $('#ceirPinOnly').innerHTML = ''; }
   st.current = makeSnapshot(p, built, $('#date-' + p.id).value); st.viewingId = null; st.ovr = { ov: {}, kp: {} }; st.backedSig = null;
   renderExtras(p); renderResult(p.id); renderHistory(p.id);
   if (p.id === 'MRM') $('#mrmTpl').disabled = false;
