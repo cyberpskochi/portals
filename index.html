@@ -325,6 +325,10 @@ table.ut tr.upend td{background:rgba(255,179,0,.08)}
 table.dt tr.tot td{background:rgba(212,165,116,.18);font-weight:700;color:#fff}
 input.masked{-webkit-text-security:disc}
 @media (max-width:760px){.pin-grid{grid-template-columns:1fr}.pin-sh{flex-wrap:wrap;gap:10px}}
+.bkbar{align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+.bkbar .sp{flex:1}
+.bitem input[type=checkbox]{accent-color:var(--mag);width:16px;height:16px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
 </style>
 </head>
 <body>
@@ -457,9 +461,12 @@ input.masked{-webkit-text-security:disc}
       <div class="sgrid">
         <div class="glass card corner" style="--pc:var(--mag)">
           <h3>Encrypted backups</h3>
-          <div class="row" style="margin-bottom:10px"><label class="f grow">Portal<select id="bkPortal"></select></label><button class="btn sm ghost" id="bkRefresh">↻ Refresh</button></div>
+          <div class="row" style="margin-bottom:6px"><label class="f grow">Portal<select id="bkPortal"></select></label><button class="btn sm ghost" id="bkRefresh">↻ Refresh</button></div>
+          <div class="row" style="margin-bottom:6px"><label class="f grow">From date<input type="date" id="bkFrom"></label><label class="f grow">To date<input type="date" id="bkTo"></label></div>
+          <div class="row bkbar"><label class="chk"><input type="checkbox" id="bkAll"> Select all shown</label><span class="tiny muted" id="bkCount"></span><span class="sp"></span>
+            <button class="btn sm red" id="bkDelSel" disabled>🗑 Delete selected</button><button class="btn sm red" id="bkClear">⚠ Clear all shown</button></div>
           <div class="blist" id="bkList"></div>
-          <p class="tiny muted">Backups are made only when a report is generated. Replaced or deleted backups are moved to the <code>_replaced</code> folder, never destroyed.</p>
+          <p class="tiny muted">Backups are made only when a report is generated. Deleted or replaced backups are moved to the <code>_replaced</code> folder in Drive (recoverable by the admin); empty that folder in Drive to remove them for good. Only the admin can clear backups — every deletion is logged.</p>
         </div>
         <div class="glass card corner" style="--pc:var(--mag)">
           <h3>Full backup file</h3>
@@ -480,7 +487,7 @@ input.masked{-webkit-text-security:disc}
     </section>
   </main>
 
-  <footer class="credit-bar">© ARUN R <span style="opacity:.5;font-size:.8em;margin-left:8px">v2.1</span></footer>
+  <footer class="credit-bar">© ARUN R <span style="opacity:.5;font-size:.8em;margin-left:8px">v2.2</span></footer>
 </div>
 
 <div id="modal" class="modal hidden" role="dialog" aria-modal="true"></div>
@@ -2573,9 +2580,44 @@ function renderLogs() {
   $('#logTable').innerHTML = `<thead><tr><th class="l">Time</th><th class="l">User</th><th class="l">Action</th><th class="l">Detail</th><th class="l">IP address</th></tr></thead><tbody>` +
     (rows.map(l => `<tr><td class="l mono tiny">${esc(l.ts ? new Date(l.ts).toLocaleString('en-IN') : '')}</td><td class="l">${esc(l.name || '')}<br><span class="mono tiny muted">${esc(l.email)}</span></td><td class="l mono ${cls(l.action)}">${esc(l.action)}</td><td class="l tiny" style="font-weight:400">${esc(l.detail)}</td><td class="l mono">${esc(l.ip || '—')}</td></tr>`).join('') || '<tr><td class="l muted" colspan="5">No log entries.</td></tr>') + '</tbody>';
 }
+function bkShown() {
+  const pf = $('#bkPortal').value, f = $('#bkFrom').value, t = $('#bkTo').value;
+  return Store.list.filter(s => (!pf || s.portal === pf) && (!f || s.date >= f) && (!t || s.date <= t))
+    .sort((a, b) => a.date < b.date ? 1 : a.date > b.date ? -1 : a.portal.localeCompare(b.portal));
+}
+function bkSel() { return $$('#bkList input[data-bsel]:checked').map(x => x.dataset.bsel); }
+function bkUpdate() {
+  const n = bkSel().length, all = $$('#bkList input[data-bsel]').length;
+  $('#bkCount').textContent = `${all} shown · ${n} selected`; $('#bkDelSel').disabled = !n;
+  $('#bkClear').disabled = !all; $('#bkAll').checked = all > 0 && n === all;
+}
 function renderBackups() {
-  const pf = $('#bkPortal').value; const list = Store.list.filter(s => !pf || s.portal === pf).sort((a, b) => a.date < b.date ? 1 : a.date > b.date ? -1 : a.portal.localeCompare(b.portal));
-  $('#bkList').innerHTML = list.length ? list.map(s => `<div class="bitem"><span><b style="color:${P_BY[s.portal] ? P_BY[s.portal].color : '#fff'}">${esc(P_BY[s.portal] ? P_BY[s.portal].short : s.portal)}</b> · ${dmy(s.date)}<br><small class="muted">${esc(s.savedBy || '')} · ${esc(s.savedAt ? new Date(s.savedAt).toLocaleString('en-IN') : '')}</small></span><button class="btn sm red" data-bdel="${esc(s.id)}" title="Delete backup">✕</button></div>`).join('') : '<div class="tiny muted">No backups yet.</div>';
+  const list = bkShown();
+  $('#bkList').innerHTML = list.length ? list.map(s => `<div class="bitem"><input type="checkbox" data-bsel="${esc(s.id)}"><span><b style="color:${P_BY[s.portal] ? P_BY[s.portal].color : '#fff'}">${esc(P_BY[s.portal] ? P_BY[s.portal].short : s.portal)}</b> · ${dmy(s.date)}<br><small class="muted">${esc(s.savedBy || '')} · ${esc(s.savedAt ? new Date(s.savedAt).toLocaleString('en-IN') : '')}</small></span><button class="btn sm red" data-bdel="${esc(s.id)}" title="Delete backup">✕</button></div>`).join('') : '<div class="tiny muted">No backups match.</div>';
+  bkUpdate();
+}
+async function bkDeleteMany(ids, what) {
+  if (!Api.isAdmin() || !ids.length) return;
+  const items = ids.map(id => Store.list.find(s => s.id === id)).filter(Boolean);
+  const summary = PORTALS.map(p => [p.short, items.filter(s => s.portal === p.id).length]).filter(x => x[1]).map(x => `${x[0]}: ${x[1]}`).join(', ');
+  const ok = await modal({ title: what, danger: true, ok: 'Delete ' + items.length + ' backup(s)', html: `<div class="warnbox">This removes <b>${items.length}</b> backup record(s) from the app (${esc(summary)}). They will no longer appear in the portal tabs, dashboard or Work Done reports.</div>
+    <p class="tiny muted" style="margin:0">The files are moved to the <code>_replaced</code> folder in the admin's Drive, so they can still be recovered there.</p>
+    <label class="f">Type <b>DELETE</b> to confirm<input type="text" id="bkConfirm" autocomplete="off"></label>`,
+    validate: m => { if ($('#bkConfirm', m).value.trim().toUpperCase() !== 'DELETE') { toast('Type DELETE to confirm.', 'err'); return false; } return true; } });
+  if (!ok) return;
+  let done = 0, failed = 0;
+  const busy = document.createElement('div'); busy.className = 'busy'; busy.innerHTML = '<div class="sp"></div><p>DELETING BACKUPS</p>'; document.body.appendChild(busy);
+  try {
+    for (const s of items) {
+      busy.querySelector('p').textContent = `DELETING BACKUPS ${done + failed + 1} / ${items.length}`;
+      try { await Api.call('deleteSnap', { id: s.id }); done++; Store.cache.delete(s.id); } catch (e) { failed++; if (e.message === 'Session expired') break; }
+    }
+  } finally { busy.remove(); }
+  Api.log('BACKUPS_CLEARED', `${done} backup(s) deleted${failed ? ', ' + failed + ' failed' : ''} · ${summary}`);
+  try { await Store.refresh(); } catch (e) { }
+  PORTALS.forEach(p => { const st = PS[p.id]; if (st && st.viewingId && !Store.list.some(s => s.id === st.viewingId)) { st.viewingId = null; st.current = null; renderResult(p.id); } if (st) renderHistory(p.id); });
+  updateNavCounts(); renderBackups();
+  toast(`${done} backup(s) deleted${failed ? ' — ' + failed + ' could not be deleted' : ''}.`, failed ? 'warn' : 'ok', 6000);
 }
 function fMsg(t, k = 'info') { const m = $('#fMsg'); m.textContent = t; m.className = 'msg ' + k; }
 async function downloadFullBackup() {
@@ -2642,7 +2684,11 @@ function wireStatic() {
       const ws = XLSX.utils.aoa_to_sheet(aoa); ws['!cols'] = [{ wch: 20 }, { wch: 28 }, { wch: 20 }, { wch: 8 }, { wch: 20 }, { wch: 60 }, { wch: 16 }, { wch: 40 }];
       const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Logs'); XLSX.writeFile(wb, 'CPS_Activity_Log_' + dmy(isoToday()) + '.xlsx'); Api.log('LOG_EXPORTED', ADM.logs.length + ' rows'); } catch (e) { toast(e.message, 'err'); }
   };
-  $('#bkPortal').onchange = renderBackups;
+  $('#bkPortal').onchange = renderBackups; $('#bkFrom').onchange = renderBackups; $('#bkTo').onchange = renderBackups;
+  $('#bkAll').onchange = e => { $$('#bkList input[data-bsel]').forEach(x => x.checked = e.target.checked); bkUpdate(); };
+  $('#bkList').addEventListener('change', e => { if (e.target.dataset.bsel) bkUpdate(); });
+  $('#bkDelSel').onclick = () => bkDeleteMany(bkSel(), 'Delete selected backups?');
+  $('#bkClear').onclick = () => bkDeleteMany(bkShown().map(s => s.id), 'Clear all backups shown?');
   $('#bkRefresh').onclick = () => Store.refresh().then(renderBackups).catch(e => toast(e.message, 'err'));
   $('#bkList').onclick = async e => { const b = e.target.closest('[data-bdel]'); if (!b) return; const s = Store.list.find(x => x.id === b.dataset.bdel); if (s) { await deleteSnap(P_BY[s.portal] || { short: s.portal, id: s.portal }, s.id); renderBackups(); } };
   $('#fExport').onclick = async () => { try { const n = await withBusy('PACKING ENCRYPTED BACKUP', downloadFullBackup); fMsg(`Encrypted full backup downloaded (${n} records).`, 'ok'); } catch (e) { fMsg(e.message, 'err'); } };
