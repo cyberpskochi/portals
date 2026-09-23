@@ -303,6 +303,28 @@ table.ut tr.upend td{background:rgba(255,179,0,.08)}
 .pgrid{display:flex;flex-wrap:wrap;gap:4px 10px;max-width:360px}
 .pchk{display:inline-flex;align-items:center;gap:4px;font-family:var(--fm);font-size:12.5px;color:var(--ink2);cursor:pointer}
 .pchk input,table.ut input[type=checkbox]{accent-color:var(--mag);width:16px;height:16px}
+/* CEIR pincode-wise report */
+.pin-head{font-family:var(--fd);letter-spacing:.14em;font-size:15px;color:#1a1204;background:linear-gradient(135deg,#e7c08f,#c99a60);padding:10px 16px;border-radius:10px;text-align:center;margin-bottom:8px;box-shadow:0 0 18px rgba(212,165,116,.25)}
+.pin-state{margin-bottom:12px;overflow:hidden;border-top:3px solid #d4a574}
+.pin-sh{display:flex;align-items:center;gap:18px;padding:12px 16px;cursor:pointer;background:linear-gradient(135deg,rgba(30,58,138,.55),rgba(37,99,235,.28))}
+.pin-sh b{flex:1;font-family:var(--fd);letter-spacing:.06em;font-size:15px;color:#fff;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pin-sh span{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);text-align:center;border-left:1px solid rgba(255,255,255,.18);padding-left:14px}
+.pin-sh span i{display:block;font-style:normal;font-family:var(--fd);font-size:19px;color:#fff}
+.pin-arr{font-style:normal;color:var(--violet);transition:transform .2s}
+.pin-state.open .pin-arr{transform:rotate(180deg)}
+.pin-body{display:none;padding:14px 16px}
+.pin-state.open .pin-body{display:block}
+.pin-body h4{margin:0 0 8px;font-family:var(--fd);font-size:12px;letter-spacing:.12em;color:var(--violet);text-transform:uppercase}
+.pin-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+.pin-chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px}
+.pin-chips span{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 11px;border-radius:8px;color:#fff;font-size:12px;text-transform:uppercase;letter-spacing:.04em;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.pin-chips b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pin-chips i{font-style:normal;font-weight:800;background:rgba(255,255,255,.28);padding:2px 8px;border-radius:4px}
+.pin-det{margin-top:12px}
+.pin-det summary{cursor:pointer;color:var(--ink2);font-size:13px;margin-bottom:8px}
+table.dt tr.tot td{background:rgba(212,165,116,.18);font-weight:700;color:#fff}
+input.masked{-webkit-text-security:disc}
+@media (max-width:760px){.pin-grid{grid-template-columns:1fr}.pin-sh{flex-wrap:wrap;gap:10px}}
 </style>
 </head>
 <body>
@@ -1262,7 +1284,7 @@ const MRM_HEAD = ['Police Station', 'No. of Restorable', 'Victim Requests Remain
 async function exportMRM(p, snap, kind, g) {
   const st = PS.MRM, V = mrmVisible(snap, st), m = snap.meta || {}, t = snap.sections.main.totals, R = mrmRows(snap), bank = snap.report.bank;
   const dd = dmy(snap.date).replace(/-/g, '.');
-  try {
+  {
     if (kind === 'pdf') {
       const doc = newPdf(g.pdfPass), W = doc.internal.pageSize.getWidth(), mX = 12, cW = W - mX * 2;
       const navy = [11, 37, 69], navy2 = [19, 49, 92], accent = [200, 149, 44], green = [30, 126, 52], red = [176, 42, 42], amber = [184, 134, 11], ink = [27, 36, 48], muted = [107, 118, 132], border = [223, 228, 234], rowAlt = [246, 248, 251];
@@ -1338,7 +1360,7 @@ async function exportMRM(p, snap, kind, g) {
         doc.setLineWidth(0.2);
       }
       pdfFinish(doc, 'MRM Status Report • Data verified • Formatted for official documentation');
-      doc.save('MRM_Report_' + dmy(snap.date) + '.pdf');
+      savePdf(doc, 'MRM_Report_' + dmy(snap.date) + '.pdf');
     } else {
       needLib('XLSX');
       const E = ['', '', '', '', '', '', '', '', '', '', '', '', '', ''];
@@ -1361,11 +1383,179 @@ async function exportMRM(p, snap, kind, g) {
       ws['!cols'] = [{ wch: 26 }, { wch: 14 }, { wch: 18 }, { wch: 16 }, { wch: 16 }, { wch: 16 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 12 }, { wch: 18 }, { wch: 18 }, { wch: 14 }, { wch: 14 }, { wch: 14 }];
       ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 14 } }];
       const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'MRM');
-      XLSX.writeFile(wb, 'MRM_RESULT_' + dmy(snap.date) + '.xlsx');
+      saveXlsx(wb, 'MRM_RESULT_' + dmy(snap.date) + '.xlsx');
     }
-    Api.log('REPORT_GENERATED', `MRM ${kind.toUpperCase()} report · data as on ${snap.date}`);
-    toast('Export ready: MRM ' + kind.toUpperCase(), 'ok');
-  } catch (e) { console.error(e); toast('Export failed: ' + e.message, 'err', 7000); }
+  }
+}
+
+/* CEIR pincode → state/district tables, ported from the CEIR Report Dashboard (grouped "State|District": "pin pin …") */
+const CEIR_PIN_RANGES = [["Andaman and Nicobar Islands",744000,744999],["Andhra Pradesh",515000,535999],["Arunachal Pradesh",791000,792999],["Assam",781000,788999],["Bihar",800000,855999],["Chandigarh",160000,160999],["Chhattisgarh",490000,497999],["Dadra and Nagar Haveli and Daman and Diu",396000,396999],["Delhi",110000,110999],["Goa",403000,403999],["Gujarat",360000,394999],["Haryana",121000,136999],["Himachal Pradesh",171000,177999],["Jammu and Kashmir",180000,194999],["Jharkhand",814000,835999],["Karnataka",560000,591999],["Kerala",670000,695999],["Ladakh",194000,194999],["Lakshadweep",682000,682999],["Madhya Pradesh",450000,488999],["Maharashtra",400000,449999],["Manipur",795000,796999],["Meghalaya",793000,794999],["Mizoram",796000,797999],["Nagaland",798000,799999],["Odisha",751000,770999],["Puducherry",605000,609999],["Punjab",140000,160999],["Rajasthan",300000,345999],["Sikkim",737000,738999],["Tamil Nadu",600000,643999],["Telangana",500000,509999],["Tripura",799000,799999],["Uttar Pradesh",201000,285999],["Uttarakhand",244000,263999],["West Bengal",700000,743999]];
+const CEIR_PIN_GROUPS = {"Delhi|New Delhi":"110001 110002 110003 110004 110005 110006 110007 110008 110009 110010 110011 110012 110013 110014 110015 110016 110017 110019 110020 110021 110022 110023 110024 110025 110026 110027 110028 110029 110030 110031 110032 110033 110034 110035 110036 110037 110038 110039 110040 110041 110042 110043 110044 110045 110046 110047 110048 110049 110050 110051 110052 110053 110054 110055 110056 110057 110058 110059 110060 110061 110062 110063 110064 110065 110066 110067 110068 110069 110070 110071 110072 110073 110074 110075 110076 110077 110078 110079 110080 110081 110082 110083 110084 110085 110086 110087 110088 110089 110090 110091 110092 110093 110094 110095 110096 110097","Haryana|Faridabad":"121001","Haryana|Gurgaon":"122001","Haryana|Hisar":"123001","Haryana|Rohtak":"124001","Haryana|Bhiwani":"125001","Haryana|Panipat":"126001","Haryana|Kaithal":"127001","Haryana|Karnal":"128001","Haryana|Yamunanagar":"129001","Haryana|Ambala":"130001","Haryana|Panchkula":"131001","Punjab|Ludhiana":"140001 141001","Punjab|Jalandhar":"142001","Punjab|Amritsar":"143001","Punjab|Bathinda":"144001","Punjab|Moga":"145001","Punjab|Faridkot":"146001","Punjab|Sangrur":"147001","Punjab|Patiala":"148101","Punjab|Chandigarh":"160001","Himachal Pradesh|Shimla":"171001","Himachal Pradesh|Solan":"172001","Himachal Pradesh|Mandi":"175001","Himachal Pradesh|Kangra":"176001","Uttar Pradesh|Noida":"201001","Uttar Pradesh|Ghaziabad":"202001","Uttar Pradesh|Meerut":"208001","Uttar Pradesh|Agra":"210001","Uttar Pradesh|Varanasi":"220001","Uttar Pradesh|Lucknow":"225001 226001","Uttar Pradesh|Kanpur":"230001","Uttarakhand|Haldwani":"244001","Uttarakhand|Nainital":"246001","Uttarakhand|Almora":"247001","Uttar Pradesh|Mathura":"250001","Uttar Pradesh|Moradabad":"251001","Uttarakhand|Dehradun":"260001","Rajasthan|Jaipur":"300001","Rajasthan|Ajmer":"310001","Rajasthan|Jodhpur":"320001","Rajasthan|Bikaner":"330001","Rajasthan|Nagaur":"334001","Rajasthan|Pali":"335001","Gujarat|Rajkot":"360001","Gujarat|Ahmedabad":"370001 380001","Gujarat|Vadodara":"390001","Gujarat|Surat":"395001 395004 395006 395008","Maharashtra|Mumbai":"400001 400002 400003 400004 400005 400006 400007 400008 400009 400010 400011 400012 400013 400014 400015 400016 400017 400018 400019 400020 400021 400022 400023 400024 400025 400026 400027 400028 400029 400030 400031 400032 400033 400034 400035 400036 400037 400038 400039 400040 400050 400060 400070 400080 400086 400088 400089 400098 400099","Maharashtra|Raigad":"400701 412101 421101 421201 421302 421304 421305 421306 421502 421503 421602 421603","Maharashtra|Pune":"410001 410011 410026 411001 411021","Maharashtra|Sangli":"413101 416114 418101","Maharashtra|Kolhapur":"415201 415301 416001 416009 416506 416507 416508 416509 419001","Maharashtra|Satara":"417001 417201","Maharashtra|Thane":"420001 420103 420201 421001","Maharashtra|Nashik":"422001 422101 422201","Maharashtra|Dhule":"423001","Maharashtra|Jalgaon":"424001 425001 426001","Maharashtra|Aurangabad":"427001 430001 431001 431101 432001","Maharashtra|Parbhani":"427201 428001","Maharashtra|Hingoli":"429001","Maharashtra|Jalna":"431201","Maharashtra|Beed":"432101 433001 433101 433201","Maharashtra|Usmanabad":"434001 434101 435001 435101","Maharashtra|Nagpur":"440001 440026","Maharashtra|Wardha":"441001 441101","Maharashtra|Yavatmal":"442001 442101","Maharashtra|Akola":"443001 443101 444001","Maharashtra|Washim":"444101 445001 445101","Maharashtra|Buldhana":"446001 446101 447001","Madhya Pradesh|Indore":"450001","Madhya Pradesh|Bhopal":"460001","Madhya Pradesh|Gwalior":"470001","Madhya Pradesh|Jabalpur":"480001","Madhya Pradesh|Raipur":"490001","Andhra Pradesh|Hyderabad":"500001 500002 500003 500004 500005 500006 500007 500008 500009 500010 500016 500020 500025 500026 500027 500028 500029 500030 500031 500032 500033 500034 500035 500036 500037 500038 500039 500040 500050 500060 500072 500073 500074 500075 500076 500077 500078 500080 500081 500082 500083 500084 500085 500086 500087 500088 500089 500090","Andhra Pradesh|Ranga Reddy":"500091 500092","Andhra Pradesh|Chittoor":"517001 517501 531001","Andhra Pradesh|Kurnool":"518001 518003","Andhra Pradesh|Nellore":"521001 524001","Andhra Pradesh|Tirupati":"522001 523001","Andhra Pradesh|Visakhapatnam":"530001 530002 530003 530004 530005 530006 530007 530008 530009 530010 530011 530012","Karnataka|Bengaluru Urban":"560001 560002 560003 560004 560005 560006 560007 560008 560009 560010 560011 560012 560013 560014 560015 560016 560017 560018 560019 560020 560021 560022 560023 560024 560025 560026 560027 560028 560029 560030 560031 560032 560033 560034 560035 560036 560037 560038 560040 560041 560042 560043 560045 560046 560047 560048 560049 560050 560051 560052 560053 560054 560055 560056 560057 560058 560059 560060 560061 560062 560063 560064 560065 560066 560067 560068 560069 560070 560071 560072 560073 560074 560075 560076 560077 560078 560079 560080 560081 560082 560083 560084 560085 560086 560087 560088 560089 560090 560091 560092 560093 560094 560095 560096 560097 560098 560099 560100","Karnataka|Mysore":"570001","Karnataka|Mandya":"571001","Karnataka|Tumkur":"572001","Karnataka|Mangalore":"575001","Karnataka|Chikmagalur":"577001","Karnataka|Belgaum":"580001 581001","Karnataka|Bijapur":"590001","Karnataka|Bailhongal":"591001","Tamil Nadu|Chennai":"600001 600002 600003 600004 600005 600006 600007 600008 600009 600010 600011 600012 600013 600014 600015 600016 600017 600018 600019 600020 600021 600022 600023 600024 600025 600026 600027 600028 600029 600030 600031 600032 600033 600034 600035 600036 600037 600038 600039 600040 600041 600042 600043 600044 600045 600046 600047 600048 600049 600050 600051 600052 600053 600054 600055 600056 600057 600058 600059 600060 600061 600062 600063 600064 600065 600066 600067 600068 600069 600070 600071 600072 600073 600074 600075 600076 600077 600078 600079 600080 600081 600082 600083 600084 600085 600086 600087 600088 600089 600090 600091 600092 600093 600094 600095 600096 600097 600098 600099 600100","Tamil Nadu|Kanchipuram":"603001 604001 634001","Tamil Nadu|Tiruppur":"605001 638001","Tamil Nadu|Krishnagiri":"606001 653001","Tamil Nadu|Villupuram":"607001","Tamil Nadu|Cuddalore":"608001 609001","Tamil Nadu|Pondicherry":"610001","Tamil Nadu|Viluppuram":"611001","Tamil Nadu|Ariyalur":"612001","Tamil Nadu|Perambalur":"613001","Tamil Nadu|Tiruchirappalli":"614001","Tamil Nadu|Karur":"615001","Tamil Nadu|Dindigul":"616001","Tamil Nadu|Madurai":"617001 620001 621001","Tamil Nadu|Theni":"618001","Tamil Nadu|Ramanathapuram":"619001","Tamil Nadu|Tirunelveli":"622001 629001 629201","Tamil Nadu|Kanyakumari":"623001","Tamil Nadu|Nagercoil":"624001","Tamil Nadu|Thoothukudi":"625001 626001","Tamil Nadu|Tenkasi":"627001 628001","Tamil Nadu|Vellore":"630001","Tamil Nadu|Ranipet":"631001 636001","Tamil Nadu|Tiruppattur":"632001 637001","Tamil Nadu|Chengalpattu":"633001 633002 635001","Tamil Nadu|Nilgiris":"638101 638601 641600 641659 641664 642001 643001","Tamil Nadu|Coimbatore":"639001 640001","Tamil Nadu|Erode":"641001 645001 646001 647001 647401 648001","Tamil Nadu|Salem":"649001 650001","Tamil Nadu|Namakkal":"651001","Tamil Nadu|Dharmapuri":"652001","Kerala|Kannur":"670001 670501 671001 671301","Kerala|Wayanad":"672001","Kerala|Kozhikode":"673001 673501","Kerala|Malappuram":"674001 676001 678001","Kerala|Thrissur":"680001 680501","Kerala|Ernakulam":"681001 681501 682001 682009 682011 682013 682015 682016 682017 682018 682019 682020 682021 682022 682023 682024 682025 682026 682027 682028 682029 682030 682031 682032 682033","Kerala|Kottayam":"683001 684001 693001","Kerala|Pathanamthitta":"686001","Kerala|Idukki":"687001","Kerala|Muvattupuzha":"688001","Kerala|Thiruvalla":"689001","Kerala|Thiruvananthapuram":"690001 690501","Kerala|Kollam":"691001 691501","Kerala|Alapuzha":"692001","West Bengal|Kolkata":"700001","West Bengal|South 24 Parganas":"711101","West Bengal|East Midnapore":"713101","West Bengal|West Midnapore":"721101","West Bengal|Bardhaman":"741101","Odisha|Bhubaneswar":"751001 751002","Odisha|Cuttack":"752001","Odisha|Dhenkanal":"753001","Odisha|Balasore":"757001","Odisha|Sambalpur":"770001","Odisha|Rourkela":"773001","Assam|Guwahati":"781001","Assam|Silchar":"788001","Arunachal Pradesh|West Kameng":"790101 790116","Assam|Barpeta":"791101","Assam|Kokrajhar":"792101","Bihar|Patna":"800001","Bihar|Gaya":"813001","Jharkhand|Dhanbad":"815001","Jharkhand|Deoghar":"821001","Jharkhand|Godda":"825101","Bihar|Madhubani":"844101","Bihar|Darbhanga":"846001","Bihar|Muzaffarpur":"847101"};
+
+/* =====================================================================
+   CEIR — Pincode-wise traceability report (ported from the CEIR Report
+   Dashboard): raw traceability files → dedup by Reporting MSISDN →
+   pincode → state / district → district summary + police stations.
+   Raw columns used (same as the dashboard): C = Reporting MSISDN,
+   O = Pincode, Q = Circle / State, S = Police Station (data from row 3).
+   ===================================================================== */
+const CEIR_PIN_MAP = (() => { const m = {}; Object.keys(CEIR_PIN_GROUPS).forEach(k => { const [state, district] = k.split('|'); CEIR_PIN_GROUPS[k].split(' ').forEach(pin => m[pin] = { state, district }); }); return m; })();
+const CEIR_PIN_HEADING = 'KOCHI CITY CEIR TRACE DETAILS';
+const ceirClean = s => String(s || '').replace(/[^a-zA-Z0-9\s&\-()]/g, '').trim();
+function ceirPinState(pin) {
+  if (!pin || pin.length !== 6) return null; const n = parseInt(pin, 10); if (isNaN(n)) return null;
+  const r = CEIR_PIN_RANGES.find(x => n >= x[1] && n <= x[2]); return r ? r[0] : null;
+}
+async function readCEIRTrace(files) {
+  const recs = [];
+  for (const f of files) {
+    const wb = await readWorkbook(f, { raw: true });
+    const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: '', blankrows: false });
+    rows.slice(2).forEach(r => { if (r[14] && r[16] && r[18]) recs.push({ station: String(r[18]).trim(), state: String(r[16]).trim(), pincode: String(r[14]).trim(), msisdn: String(r[2] || '').trim() }); });
+  }
+  if (!recs.length) throw new Error('No traceability rows found. Expected the raw CEIR traceability export: Reporting MSISDN in column C, Pincode in O, Circle/State in Q and Police Station in S, with data from row 3.');
+  return recs;
+}
+function ceirPincode(records, files) {
+  const seen = new Set(), uniq = [];
+  records.forEach(r => { const m = r.msisdn; if (m && !seen.has(m)) { seen.add(m); uniq.push(r); } else if (!m) uniq.push(r); });
+  const map = {}, stMap = {}, unmapped = new Set(), traced = new Set();
+  uniq.forEach(r => {
+    const pin = String(r.pincode || '').replace(/[^\d]/g, ''); if (!pin) return;
+    let info = CEIR_PIN_MAP[pin];
+    if (!info) { const s = ceirPinState(pin); if (s) { info = { state: s, district: s }; traced.add(pin); } else { unmapped.add(pin); return; } }
+    const S = info.state, D = info.district, C = r.state;
+    const ms = map[S] = map[S] || {}, md = ms[D] = ms[D] || {}, mp = md[pin] = md[pin] || {}; mp[C] = (mp[C] || 0) + 1;
+    const sm = (stMap[S] = stMap[S] || {}); sm[r.station] = (sm[r.station] || 0) + 1;
+  });
+  const states = Object.keys(map).sort().map(S => {
+    const districts = Object.keys(map[S]).map(D => { let n = 0; const detail = []; Object.keys(map[S][D]).sort().forEach(pin => Object.keys(map[S][D][pin]).sort().forEach(C => { n += map[S][D][pin][C]; detail.push([pin, C, map[S][D][pin][C]]); })); return { name: D, count: n, pins: Object.keys(map[S][D]).length, detail }; }).sort((a, b) => b.count - a.count);
+    const total = districts.reduce((a, d) => a + d.count, 0);
+    const stations = Object.keys(stMap[S] || {}).filter(Boolean).map(n => [n, stMap[S][n]]).sort((a, b) => b[1] - a[1]);
+    return { state: S, total, pins: districts.reduce((a, d) => a + d.pins, 0), districts, stations };
+  });
+  return {
+    heading: CEIR_PIN_HEADING, files: files || [],
+    stats: { total: records.length, unique: uniq.length, dup: records.length - uniq.length, states: states.length, traced: traced.size, unmapped: unmapped.size },
+    states, unmapped: [...unmapped].sort()
+  };
+}
+const CEIR_PIN_CARDS = [['total', 'Total Records (Original)', 'var(--cyan)'], ['unique', 'Unique Records (After Dedup)', 'var(--green)'], ['dup', 'Duplicates Removed', 'var(--red)'], ['states', 'States/UTs Covered', 'var(--amber)'], ['traced', '✓ Pincodes Traced', 'var(--violet)'], ['unmapped', 'Unmapped Pincodes', 'var(--mag)']];
+
+/* ---------- UI: upload box (Step 1B) ---------- */
+function wireCEIRTrace(p, st) {
+  st.trace = null;
+  const inp = $('#ceirTr'), msg = $('#ceirTrMsg');
+  const say = (t, k) => { msg.textContent = t; msg.className = 'msg ' + k; };
+  $('#ceirTrBtn').onclick = () => inp.click();
+  $('#ceirTrClr').onclick = () => { st.trace = null; say('', ''); if (st.cache) rebuild(p); };
+  inp.onchange = async () => {
+    const fs = Array.from(inp.files); inp.value = ''; if (!fs.length) return;
+    try {
+      const recs = await withBusy('READING TRACEABILITY DATA', () => readCEIRTrace(fs));
+      st.trace = { records: recs, files: fs.map(f => f.name) };
+      if (st.cache) { rebuild(p); say(`✅ ${fmtN(recs.length)} traceability rows from ${fs.length} file(s) — the pincode-wise report is shown below.`, 'ok'); }
+      else say(`✅ ${fmtN(recs.length)} traceability rows from ${fs.length} file(s). Now load the station file and press PROCESS DATA.`, 'ok');
+    } catch (e) { say('❌ ' + e.message, 'err'); }
+  };
+}
+
+/* ---------- UI: pincode-wise report ---------- */
+function ceirPinHTML(p, pin) {
+  const S = pin.stats;
+  let h = `<div class="sec" style="--pc:${p.color}" id="ceirPin"><h3 class="sec-t">Pincode-wise Traceability Report</h3>
+    <div class="pin-head">${esc(pin.heading)}</div>
+    <p class="tiny muted mono" style="margin:0 0 12px">${esc('Traceability files: ' + (pin.files.join(', ') || '—') + ' · duplicates removed by Reporting MSISDN · pincodes mapped with the All-India pincode table')}</p>
+    <div class="stats">${CEIR_PIN_CARDS.map(c => statCard(c[1], S[c[0]], c[2])).join('')}</div>`;
+  if (!pin.states.length) return h + '<div class="notes">No pincode could be mapped to a state.</div></div>';
+  h += `<div class="row" style="margin-bottom:12px"><input type="text" id="pinSearch" placeholder="Search state, district, pincode or police station…" style="flex:1;min-width:220px"><button class="btn sm ghost" id="pinToggle">Expand all</button></div>
+    <div class="hist" style="margin-bottom:14px">${pin.states.map((s, i) => `<span class="hchip" style="--pc:var(--violet)" data-pinjump="${i}">📍 ${esc(ceirClean(s.state))} <small>${fmtN(s.total)}</small></span>`).join('')}</div>`;
+  const pal = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316', '#6366f1', '#14b8a6', '#f43f5e', '#84cc16', '#0ea5e9', '#d946ef', '#64748b', '#059669', '#dc2626', '#7c3aed', '#0891b2', '#ea580c'];
+  pin.states.forEach((s, i) => {
+    const search = [s.state].concat(s.districts.map(d => d.name + ' ' + d.detail.map(x => x[0]).join(' '))).concat(s.stations.map(x => x[0])).join(' ').toLowerCase();
+    h += `<div class="glass pin-state" id="pinS${i}" data-q="${esc(search)}">
+      <div class="pin-sh" data-pintog="${i}"><b>${esc(ceirClean(s.state))}</b><span><i>${fmtN(s.total)}</i>Traces</span><span><i>${s.districts.length}</i>Districts</span><span><i>${fmtN(s.pins)}</i>Pincodes</span><em class="pin-arr">▾</em></div>
+      <div class="pin-body">
+        <div class="pin-grid">
+          <div><h4>District-wise Summary</h4><div class="tw" style="max-height:none"><table class="dt" style="min-width:0"><thead><tr><th class="l">District Name</th><th>Trace Count</th><th>% of State</th></tr></thead><tbody>
+            ${s.districts.map(d => `<tr><td class="l">${esc(ceirClean(d.name))}</td><td>${fmtN(d.count)}</td><td>${(d.count * 100 / (s.total || 1)).toFixed(1)}%</td></tr>`).join('')}
+            <tr class="tot"><td class="l">TOTAL</td><td>${fmtN(s.total)}</td><td>100%</td></tr></tbody></table></div></div>
+          <div><h4>Police Stations Reporting</h4><div class="pin-chips">${s.stations.length ? s.stations.map((x, j) => `<span style="background:${pal[j % pal.length]}"><b>${esc(ceirClean(x[0]))}</b><i>${fmtN(x[1])}</i></span>`).join('') : '<p class="tiny muted">No station data for this state.</p>'}</div></div>
+        </div>
+        <details class="pin-det"><summary>Pincode details (${fmtN(s.pins)} pincodes)</summary><div class="tw" style="max-height:340px"><table class="dt" style="min-width:0"><thead><tr><th class="l">District</th><th class="l">Pincode</th><th class="l">Circle</th><th>Count</th></tr></thead><tbody>
+          ${s.districts.flatMap(d => d.detail.map(x => `<tr><td class="l">${esc(ceirClean(d.name))}</td><td class="l mono">${esc(x[0])}</td><td class="l">${esc(x[1])}</td><td>${fmtN(x[2])}</td></tr>`)).join('')}</tbody></table></div></details>
+      </div></div>`;
+  });
+  h += pin.unmapped.length
+    ? `<div class="notes" style="border-left-color:var(--red)"><b>⚠ Untraced pincodes (${pin.unmapped.length}) — left out of the report:</b><div class="mono tiny" style="margin-top:6px;word-break:break-word">${pin.unmapped.map(esc).join(' • ')}</div><div class="tiny" style="margin-top:6px">Possible reasons: typo in the source data, invalid pincode or a new pincode. Verify with the India Post pincode directory and re-upload corrected data.</div></div>`
+    : `<div class="notes" style="border-left-color:var(--green)">✓ All pincodes were traced to a state.</div>`;
+  return h + '</div>';
+}
+function wireCEIRPin(box) {
+  const root = $('#ceirPin', box); if (!root) return;
+  const all = $$('.pin-state', root);
+  root.addEventListener('click', e => {
+    const j = e.target.closest('[data-pinjump]'); if (j) { const el = $('#pinS' + j.dataset.pinjump, root); el.classList.add('open'); el.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+    const t = e.target.closest('[data-pintog]'); if (t) { $('#pinS' + t.dataset.pintog, root).classList.toggle('open'); return; }
+    if (e.target.id === 'pinToggle') { const open = !all.every(x => x.classList.contains('open')); all.forEach(x => x.classList.toggle('open', open)); e.target.textContent = open ? 'Collapse all' : 'Expand all'; }
+  });
+  const q = $('#pinSearch', root);
+  if (q) q.addEventListener('input', () => { const v = q.value.trim().toLowerCase(); all.forEach(x => { const hit = !v || x.dataset.q.includes(v); x.style.display = hit ? '' : 'none'; x.classList.toggle('open', !!v && hit); }); });
+}
+
+/* ---------- exports ---------- */
+function ceirPinPdf(doc, pin, date) {
+  const W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight(), mX = 12;
+  const gold = [212, 165, 116], navy = [30, 58, 138], blue = [37, 99, 235], orange = [243, 156, 18], ink = [33, 33, 33];
+  doc.addPage(); let y = pdfBand(doc, [95, 55, 165], 'CEIR — Pincode-wise Traceability Report', `Data as on ${dmy(date)}  •  Duplicates removed by Reporting MSISDN`, ORG);
+  doc.setFillColor(...gold); doc.rect(mX, y, W - 2 * mX, 12, 'F'); doc.setTextColor(255, 255, 255); doc.setFont('helvetica', 'bold'); doc.setFontSize(14); doc.text(pin.heading, W / 2, y + 8.2, { align: 'center' }); y += 16;
+  const cols = [[52, 152, 219], [46, 204, 113], [231, 76, 60], [243, 156, 18], [155, 89, 182], [26, 188, 156]], bw = (W - 2 * mX - 8) / 3;
+  CEIR_PIN_CARDS.forEach((c, i) => {
+    const x = mX + (i % 3) * (bw + 4), yy = y + Math.floor(i / 3) * 19;
+    doc.setFillColor(...cols[i]); doc.roundedRect(x, yy, bw, 16, 1.5, 1.5, 'F'); doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.text(c[1].replace('✓ ', ''), x + 3, yy + 5.5);
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(13); doc.text(fmtN(pin.stats[c[0]]), x + 3, yy + 13);
+  });
+  y += 42;
+  const ensure = n => { if (y + n > H - 16) { doc.addPage(); y = 16; } };
+  pin.states.forEach(s => {
+    ensure(40);
+    doc.setFillColor(...blue); doc.rect(mX, y, W - 2 * mX, 11, 'F'); doc.setTextColor(255, 255, 255); doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
+    doc.text(ceirClean(s.state).slice(0, 45), mX + 4, y + 7.3);
+    doc.setFontSize(8.5); doc.text(`Traces ${fmtN(s.total)}   |   Districts ${s.districts.length}   |   Pincodes ${fmtN(s.pins)}`, W - mX - 4, y + 7.3, { align: 'right' }); y += 13;
+    const body = s.districts.map(d => [ceirClean(d.name), fmtN(d.count), (d.count * 100 / (s.total || 1)).toFixed(1) + '%']);
+    body.push(['TOTAL', fmtN(s.total), '100%']);
+    doc.autoTable({
+      startY: y, head: [['District Name', 'Trace Count', '% of State']], body, theme: 'grid', margin: { left: mX, right: mX, bottom: 16 },
+      styles: { fontSize: 8, cellPadding: 1.6, textColor: ink, lineColor: [225, 229, 236], halign: 'center' }, columnStyles: { 0: { halign: 'left', fontStyle: 'bold', textColor: navy } },
+      headStyles: { fillColor: orange, textColor: 255, fontStyle: 'bold', fontSize: 8.5 }, alternateRowStyles: { fillColor: [245, 249, 252] },
+      didParseCell: d => { if (d.section === 'body' && d.row.index === body.length - 1) { d.cell.styles.fillColor = gold; d.cell.styles.textColor = 255; d.cell.styles.fontStyle = 'bold'; } }
+    });
+    y = doc.lastAutoTable.finalY + 5;
+    if (s.stations.length) {
+      ensure(18); doc.setTextColor(...navy); doc.setFont('helvetica', 'bold'); doc.setFontSize(9.5); doc.text('Police Stations Reporting', mX, y + 3); y += 5;
+      doc.autoTable({
+        startY: y, head: [['Police Station', 'Trace Count']], body: s.stations.map(x => [ceirClean(x[0]), fmtN(x[1])]), theme: 'grid', margin: { left: mX, right: mX, bottom: 16 },
+        styles: { fontSize: 7.5, cellPadding: 1.3, textColor: ink, lineColor: [225, 229, 236] }, columnStyles: { 1: { halign: 'center', cellWidth: 30 } },
+        headStyles: { fillColor: blue, textColor: 255, fontStyle: 'bold', fontSize: 8 }, alternateRowStyles: { fillColor: [245, 249, 252] }
+      });
+      y = doc.lastAutoTable.finalY + 9;
+    }
+  });
+  if (pin.unmapped.length) {
+    ensure(24); doc.setTextColor(185, 28, 28); doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.text(`Untraced pincodes (${pin.unmapped.length}) - not included above`, mX, y + 3); y += 7;
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(...ink);
+    const l = doc.splitTextToSize(pin.unmapped.join('  ,  '), W - 2 * mX); ensure(l.length * 3.8); doc.text(l, mX, y); y += l.length * 3.8 + 4;
+  }
+}
+function ceirPinSheets(wb, pin, date) {
+  const add = (name, aoa, cols) => { const ws = XLSX.utils.aoa_to_sheet(aoa); ws['!cols'] = cols.map(w => ({ wch: w })); XLSX.utils.book_append_sheet(wb, ws, name); };
+  const S = pin.stats, top = [[pin.heading], [`${ORG} • Data as on ${dmy(date)}`], []];
+  add('Pincode Summary', top.concat(CEIR_PIN_CARDS.map(c => [c[1].replace('✓ ', ''), S[c[0]]])).concat([[], ['State', 'District', 'Trace Count', '% of State']])
+    .concat(pin.states.flatMap(s => s.districts.map(d => [s.state, ceirClean(d.name), d.count, Number((d.count * 100 / (s.total || 1)).toFixed(1))]).concat([[s.state + ' TOTAL', '', s.total, 100]]))), [34, 28, 14, 12]);
+  add('Pincode Detail', [['State', 'District', 'Pincode', 'Circle', 'Count']].concat(pin.states.flatMap(s => s.districts.flatMap(d => d.detail.map(x => [s.state, ceirClean(d.name), x[0], x[1], x[2]])))), [30, 26, 10, 26, 8]);
+  add('Stations by State', [['State', 'Police Station', 'Trace Count']].concat(pin.states.flatMap(s => s.stations.map(x => [s.state, ceirClean(x[0]), x[1]]))), [30, 34, 12]);
+  if (pin.unmapped.length) add('Untraced Pincodes', [['Untraced pincode']].concat(pin.unmapped.map(x => [x])), [18]);
 }
 
 /* =====================================================================
@@ -1609,7 +1799,10 @@ function optsHTML(p) {
   if (p.id === 'SAHAYOG') return `<label class="f">Jurisdiction<input type="text" data-o="city"></label>
     <label class="f">Period from<input type="text" data-o="from" placeholder="DD-MM-YYYY"></label>
     <label class="f">Period to<input type="text" data-o="to" placeholder="= snapshot date"></label>`;
-  if (p.id === 'CEIR') return `<p class="tiny muted full" style="margin:0">State-wise and pincode-wise traceability analysis stays in the standalone CEIR dashboard; this tab stores the station-wise figures used for Work Done.</p>`;
+  if (p.id === 'CEIR') return `<div class="full glass" style="padding:12px 14px;border-color:rgba(179,136,255,.45)"><b class="tiny" style="letter-spacing:.12em;color:var(--violet)">STEP 1B · TRACEABILITY DATA → PINCODE-WISE REPORT (OPTIONAL)</b>
+      <p class="tiny muted" style="margin:6px 0 10px">Upload one or more raw traceability Excel files (Reporting MSISDN, Pincode, Circle/State, Police Station). Duplicates are removed by Reporting MSISDN, every pincode is mapped to its state and district, and the pincode-wise report is added below the station table, in the PDF / Excel report and in the backup.</p>
+      <div class="row"><button class="btn sm" id="ceirTrBtn" style="--c:var(--violet)">📤 Upload traceability file(s)</button><button class="btn sm ghost" id="ceirTrClr">Remove</button><input type="file" id="ceirTr" accept=".xlsx,.xls,.csv" multiple class="hidden"></div>
+      <div class="msg" id="ceirTrMsg"></div></div>`;
   return '';
 }
 function readOpts(p) {
@@ -1657,6 +1850,7 @@ function wirePortal(p) {
   if (p.id === 'GRM') { const g = Prefs.p.grm; $('[data-o=pendingRoles]', drop.parentNode).value = g.pendingRoles; $('[data-o=bankRoles]', drop.parentNode).value = g.bankRoles; }
   if (p.id === 'SAHAYOG') { const s = Prefs.p.sahayog; $('[data-o=city]', drop.parentNode).value = s.city; $('[data-o=from]', drop.parentNode).value = s.from; }
   if (p.id === 'MRM') wireMRMManual(p, st);
+  if (p.id === 'CEIR') wireCEIRTrace(p, st);
   drop.addEventListener('click', () => inp.click());
   drop.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); inp.click(); } });
   ['dragover', 'dragenter'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('drag'); }));
@@ -1665,7 +1859,7 @@ function wirePortal(p) {
   inp.addEventListener('change', () => { if (inp.files.length) addFiles(p, inp.files); inp.value = ''; });
   dateI.addEventListener('change', () => { dateI.dataset.touched = '1'; if (dateI.value > isoToday()) { setMsg(p, 'The date cannot be in the future.', 'err'); dateI.value = isoToday(); } if (st.current && !st.viewingId) { st.current.date = dateI.value; renderResult(p.id); } });
   $('#proc-' + p.id).addEventListener('click', () => processPortal(p));
-  $('#clr-' + p.id).addEventListener('click', () => { st.manual = {}; if (p.id === 'MRM') { $('#mrmManMsg').textContent = ''; $('#mrmTpl').disabled = true; } st.files = []; st.cache = null; st.cacheSig = ''; st.current = null; st.viewingId = null; dateI.value = ''; delete dateI.dataset.touched; renderFiles(p); $('#res-' + p.id).innerHTML = ''; $('#extra-' + p.id).innerHTML = ''; setMsg(p, ''); renderHistory(p.id); });
+  $('#clr-' + p.id).addEventListener('click', () => { st.manual = {}; if (p.id === 'MRM') { $('#mrmManMsg').textContent = ''; $('#mrmTpl').disabled = true; } if (p.id === 'CEIR') { st.trace = null; $('#ceirTrMsg').textContent = ''; } st.files = []; st.cache = null; st.cacheSig = ''; st.current = null; st.viewingId = null; dateI.value = ''; delete dateI.dataset.touched; renderFiles(p); $('#res-' + p.id).innerHTML = ''; $('#extra-' + p.id).innerHTML = ''; setMsg(p, ''); renderHistory(p.id); });
   $('#res-' + p.id).addEventListener('click', e => { const b = e.target.closest('[data-act]'); if (!b) return; ({ pdf: () => reportFlow(p, 'pdf'), xlsx: () => reportFlow(p, 'xlsx') })[b.dataset.act](); });
   $('#hist-' + p.id).addEventListener('click', async e => {
     const del = e.target.closest('[data-del]'); if (del) { e.stopPropagation(); return deleteSnap(p, del.dataset.del); }
@@ -1713,6 +1907,7 @@ async function processPortal(p) {
 }
 function rebuild(p) {
   const st = PS[p.id]; const built = p.build(st.cache, readOpts(p));
+  if (p.id === 'CEIR' && st.trace) built.report = { pin: ceirPincode(st.trace.records, st.trace.files) };
   st.current = makeSnapshot(p, built, $('#date-' + p.id).value); st.viewingId = null; st.ovr = { ov: {}, kp: {} }; st.backedSig = null;
   renderExtras(p); renderResult(p.id); renderHistory(p.id);
   if (p.id === 'MRM') $('#mrmTpl').disabled = false;
@@ -1757,7 +1952,8 @@ function renderResult(pid) {
       <div class="glass stat ringc">${ringHTML(s.pct, p.color)}<div class="l">${esc(d.pctl || 'Completion %')}</div></div></div>
       ${tableHTML(portalTableCfg(p, d, sec))}</div>`;
   });
-  box.innerHTML = h; fillTables(box); animateCounts(box);
+  if (pid === 'CEIR' && snap.report && snap.report.pin) h += ceirPinHTML(p, snap.report.pin);
+  box.innerHTML = h; fillTables(box); animateCounts(box); wireCEIRPin(box);
 }
 function renderHistory(pid) {
   const p = P_BY[pid], st = PS[pid], list = Store.snapsOf(pid).slice().reverse();
@@ -1782,26 +1978,60 @@ function resBarHTML(p, st, snap) {
   return `<div class="glass res-bar" style="--pc:${p.color}"><span class="t">${label}</span><span class="sp"></span>${tip}
     <button class="btn sm primary" data-act="pdf" style="--c:${p.color}">⬇ PDF REPORT</button><button class="btn sm" data-act="xlsx" style="--c:${p.color}">⬇ EXCEL REPORT</button></div>`;
 }
-const pdfPwField = kind => kind === 'pdf' ? '<label class="f">Optional password to open the PDF<input type="password" id="rpPdf" autocomplete="off"></label>' : '';
-async function reportDialog(kind, html) {
-  if (kind !== 'pdf' && !html) return { pdfPass: '' };
-  return modal({ title: kind === 'pdf' ? 'Generate PDF report' : 'Generate Excel report', ok: 'Generate', html: (html || '') + pdfPwField(kind), validate: m => { const r = $('input[name=rpRep]:checked', m); return { replace: r ? r.value === 'replace' : false, pdfPass: $('#rpPdf', m) ? $('#rpPdf', m).value : '' }; } });
+// PDF password is opt-in and uses a masked TEXT box, so the browser never auto-fills a saved password into it.
+const pdfPwField = kind => kind === 'pdf' ? `<label class="chk"><input type="checkbox" id="rpPwOn"> Protect the PDF with a password</label>
+  <label class="f hidden" id="rpPwBox">PDF password — you will need it every time you open this PDF<input type="text" id="rpPdf" class="masked" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true"></label>` : '';
+function reportDialog(kind, html, force) {
+  if (kind !== 'pdf' && !html && !force) return Promise.resolve({ pdfPass: '' });
+  return modal({
+    title: kind === 'pdf' ? 'Generate PDF report' : 'Generate Excel report', ok: 'Generate', html: (html || '') + pdfPwField(kind),
+    onOpen: m => { const c = $('#rpPwOn', m); if (c) c.onchange = () => { $('#rpPwBox', m).classList.toggle('hidden', !c.checked); if (c.checked) $('#rpPdf', m).focus(); }; },
+    validate: m => {
+      const r = $('input[name=rpRep]:checked', m), on = $('#rpPwOn', m) && $('#rpPwOn', m).checked, pw = on ? $('#rpPdf', m).value : '';
+      if (on && pw.length < 4) { toast('Type a PDF password of at least 4 characters, or untick the password box.', 'err'); return false; }
+      return { replace: r ? r.value === 'replace' : false, pdfPass: pw };
+    }
+  });
+}
+/* Report builders call savePdf / saveXlsx; while a report is being built the file is held in
+   memory (so it can be checked and backed up first) and only downloaded by deliver(). */
+let SAVE_SINK = null;
+function savePdf(doc, name) { const o = { name, save: () => doc.save(name) }; if (SAVE_SINK) SAVE_SINK.push(o); else o.save(); }
+function saveXlsx(wb, name) { const o = { name, save: () => XLSX.writeFile(wb, name) }; if (SAVE_SINK) SAVE_SINK.push(o); else o.save(); }
+async function buildReport(fn) {
+  const sink = []; SAVE_SINK = sink;
+  try { await fn(); } finally { SAVE_SINK = null; }
+  if (!sink.length) throw new Error('The report produced no file.');
+  return sink[0];
+}
+function deliver(out, detail) {
+  try { out.save(); } catch (e) { return reportError('Download', e); }
+  Api.log('REPORT_GENERATED', detail);
+  toast('Report downloaded: ' + out.name + '  (check your Downloads folder)', 'ok', 6000);
+}
+function reportError(ctx, e) {
+  console.error(e);
+  const msg = (e && e.message) || String(e), where = (e && e.stack ? String(e.stack).split('\n').slice(1, 3).map(x => x.trim()).join(' | ') : '').slice(0, 200);
+  Api.log('REPORT_ERROR', `${ctx}: ${msg}${where ? ' @ ' + where : ''}`);
+  modal({ title: 'Report could not be generated', ok: 'Close', cancel: '', html: `<div class="warnbox"><b>${esc(ctx)}</b><br>${esc(msg)}</div><p class="tiny muted" style="margin:0">Nothing was backed up. This error has been recorded in the Activity Log. Try reloading the page (Ctrl+Shift+R); if it happens again, send a screenshot of this box.</p>${where ? `<p class="tiny mono muted" style="margin:0;word-break:break-all">${esc(where)}</p>` : ''}` });
 }
 async function reportFlow(p, kind) {
   const st = PS[p.id]; if (!st.current) return;
+  const ctx = `${p.short} ${kind === 'pdf' ? 'PDF' : 'Excel'} report`;
   if (st.viewingId) {
     const g = await reportDialog(kind, ''); if (!g) return;
-    return exportPortal(p, kind, g, st.current);
+    let out; try { out = await buildReport(() => exportPortal(p, kind, g, st.current)); } catch (e) { return reportError(ctx, e); }
+    return deliver(out, `${ctx} · backed-up record of ${st.current.date}`);
   }
   const date = $('#date-' + p.id).value;
   if (!date) { setMsg(p, 'Choose the "data as on" date first.', 'err'); return; }
   if (date > isoToday()) { setMsg(p, 'The date cannot be in the future.', 'err'); return; }
   const clean = cleanSnap(p, st), sig = snapSig(clean);
-  let g;
+  let g, ex = null, needBackup = false;
   if (st.backedSig === sig) { g = await reportDialog(kind, ''); if (!g) return; }
   else {
     try { await Store.refresh(); } catch (e) { toast(e.message, 'err'); return; }
-    const ex = Store.find(p.id, date);
+    ex = Store.find(p.id, date);
     let html = `<p style="margin:0">Generating this report will <b>back up</b> the data (encrypted) as the <b>${esc(p.short)}</b> record for <b>${dmy(date)}</b>.</p>`;
     if (ex) {
       html = `<div class="warnbox">A backup for <b>${esc(p.short)} · ${dmy(date)}</b> already exists — saved by <b>${esc(ex.savedBy || '?')}</b> on ${esc(ex.savedAt ? new Date(ex.savedAt).toLocaleString('en-IN') : '?')}.</div>
@@ -1809,21 +2039,31 @@ async function reportFlow(p, kind) {
         <label class="chk"><input type="radio" name="rpRep" value="replace" ${Api.canReplace() ? 'checked' : 'disabled'}> Yes — replace the old backup with this data${Api.canReplace() ? '' : ' <span class="tiny" style="color:var(--red)">(admin permission needed)</span>'}</label>
         <label class="chk"><input type="radio" name="rpRep" value="keep" ${Api.canReplace() ? '' : 'checked'}> No — keep the old backup, only generate the report</label>`;
     }
-    g = await modal({ title: kind === 'pdf' ? 'Generate PDF report' : 'Generate Excel report', ok: 'Generate', html: html + pdfPwField(kind), validate: m => { const r = $('input[name=rpRep]:checked', m); return { replace: r ? r.value === 'replace' : false, pdfPass: $('#rpPdf', m) ? $('#rpPdf', m).value : '' }; } });
-    if (!g) return;
-    if (!ex || g.replace) {
-      clean.savedAt = new Date().toISOString(); clean.savedBy = Api.user.email;
-      let r;
-      try { r = await withBusy('ENCRYPTING & BACKING UP', () => Store.put(clean, !!ex, kind.toUpperCase() + ' report generated')); }
-      catch (e) { toast('Backup failed: ' + e.message + ' — report not generated.', 'err', 8000); return; }
-      if (!r.ok && r.exists) { toast('Another user backed up this date just now — generate the report again to decide.', 'warn', 7000); return; }
-      st.backedSig = sig;
-      toast(r.replaced ? `Old backup replaced — ${p.short} ${dmy(date)}.` : `Backed up (encrypted) — ${p.short} ${dmy(date)}.`, 'ok');
-      renderHistory(p.id); updateNavCounts();
-    } else Api.log('REPORT_WITHOUT_BACKUP', `${p.short} data as on ${date} — existing backup kept`);
+    g = await reportDialog(kind, html, true); if (!g) return;
+    needBackup = !ex || g.replace;
   }
+  // 1) build the report in memory first — if it fails, nothing is backed up
+  const snapR = Object.assign({}, st.current, { date });
+  let out; try { out = await withBusy('BUILDING REPORT', () => buildReport(() => exportPortal(p, kind, g, snapR))); } catch (e) { return reportError(ctx, e); }
+  // 2) back up (only now)
+  if (needBackup) {
+    clean.savedAt = new Date().toISOString(); clean.savedBy = Api.user.email;
+    let r, err = null;
+    try { r = await withBusy('ENCRYPTING & BACKING UP', () => Store.put(clean, !!ex, kind.toUpperCase() + ' report generated')); } catch (e) { err = e; }
+    if (!err && !r.ok && r.exists) err = new Error('Another user backed up this date a moment ago.');
+    if (err) {
+      Api.log('BACKUP_ERROR', `${p.short} ${date}: ${err.message}`);
+      const go = await modal({ title: 'Backup failed', ok: 'Download report without backup', html: `<div class="warnbox">The data could not be backed up: <b>${esc(err.message)}</b></div><p style="margin:0">The report itself is ready. You can download it now (the data will <b>not</b> be stored), or cancel, fix the problem and generate it again.</p>` });
+      if (!go) return;
+      return deliver(out, `${ctx} · data as on ${date} · NOT backed up`);
+    }
+    st.backedSig = sig;
+    toast(r.replaced ? `Old backup replaced — ${p.short} ${dmy(date)}.` : `Backed up (encrypted) — ${p.short} ${dmy(date)}.`, 'ok');
+    renderHistory(p.id); updateNavCounts();
+  } else if (ex && st.backedSig !== sig) Api.log('REPORT_WITHOUT_BACKUP', `${p.short} data as on ${date} — existing backup kept`);
+  // 3) download
   st.current.date = date;
-  await exportPortal(p, kind, g, Object.assign({}, st.current, { date }));
+  deliver(out, `${ctx} · data as on ${date}`);
   renderResult(p.id);
 }
 async function deleteSnap(p, id) {
@@ -2010,10 +2250,36 @@ async function runWD(mode) {
 }
 
 /* ---------------- PDF helpers ---------------- */
+// The built-in PDF fonts only cover Latin-1, so every string is cleaned before it is written
+// (₹ → Rs., — → -, emoji and symbols dropped) instead of printing garbled characters.
+const PDF_MAP = { '₹': 'Rs.', '—': '-', '–': '-', '−': '-', '•': '-', '→': '->', '←': '<-', '⇒': '=>', '≥': '>=', '≤': '<=', '×': 'x', '…': '...', '‘': "'", '’': "'", '“': '"', '”': '"', '✓': '', '✔': '', '✕': 'x', '✖': 'x', '\u00a0': ' ' };
+function pdfTxt(v) {
+  if (typeof v === 'number') return String(v);
+  if (typeof v !== 'string') return v == null ? '' : v;
+  return v.replace(/[^\x20-\x7e\xa0-\xff\n]/g, ch => PDF_MAP[ch] !== undefined ? PDF_MAP[ch] : (/[\p{L}\p{N}]/u.test(ch) ? '?' : ''));
+}
+function pdfLib() {
+  needLib('jsPDF'); const J = window.jspdf.jsPDF;
+  if (J.API && !J.API.autoTable && typeof window.applyPlugin === 'function') { try { window.applyPlugin(J); } catch (e) { } }
+  return J;
+}
 function newPdf(pdfPass) {
-  needLib('jsPDF'); const { jsPDF } = window.jspdf; const o = { unit: 'mm', format: 'a4', orientation: 'p' };
+  const J = pdfLib(); const o = { unit: 'mm', format: 'a4', orientation: 'p' };
   if (pdfPass) o.encryption = { userPassword: pdfPass, ownerPassword: pdfPass + '#' + randId().slice(0, 8), userPermissions: ['print'] };
-  return new jsPDF(o);
+  const doc = new J(o);
+  if (typeof doc.autoTable !== 'function') {
+    if (typeof window.autoTable === 'function') doc.autoTable = opts => window.autoTable(doc, opts);
+    else throw new Error('The PDF table plugin (jspdf-autotable) did not load — reload the page with Ctrl+Shift+R and check the internet connection.');
+  }
+  doc.__encrypted = !!pdfPass;
+  const text = doc.text.bind(doc), split = doc.splitTextToSize.bind(doc), at = doc.autoTable.bind(doc);
+  doc.text = (t, ...a) => text(Array.isArray(t) ? t.map(pdfTxt) : pdfTxt(t), ...a);
+  doc.splitTextToSize = (t, ...a) => split(pdfTxt(t), ...a);
+  doc.autoTable = opts => {
+    const rows = r => (r || []).map(row => Array.isArray(row) ? row.map(pdfTxt) : row);
+    return at(Object.assign({}, opts, { head: rows(opts.head), body: rows(opts.body), foot: opts.foot ? rows(opts.foot) : undefined }));
+  };
+  return doc;
 }
 function pdfBand(doc, color, title, sub1, sub2) {
   const W = doc.internal.pageSize.getWidth();
@@ -2038,7 +2304,7 @@ function pdfFinish(doc, footer) {
   const n = doc.internal.getNumberOfPages();
   for (let i = 1; i <= n; i++) {
     doc.setPage(i); const W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight();
-    if (Prefs.p.watermark) { try { doc.saveGraphicsState(); doc.setGState(new doc.GState({ opacity: 0.07 })); doc.setFont('helvetica', 'bold'); doc.setFontSize(54); doc.setTextColor(20, 40, 70); doc.text('CONFIDENTIAL', W / 2 - 62, H / 2 + 38, { angle: 35 }); doc.restoreGraphicsState(); } catch (e) { } }
+    if (Prefs.p.watermark && !doc.__encrypted) { try { doc.saveGraphicsState(); doc.setGState(new doc.GState({ opacity: 0.07 })); doc.setFont('helvetica', 'bold'); doc.setFontSize(54); doc.setTextColor(20, 40, 70); doc.text('CONFIDENTIAL', W / 2 - 62, H / 2 + 38, { angle: 35 }); doc.restoreGraphicsState(); } catch (e) { } }
     doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(140, 150, 165);
     doc.text(footer + '  •  Generated ' + nowStamp(), 12, H - 7);
     doc.text(`Page ${i} of ${n}`, W - 12, H - 7, { align: 'right' });
@@ -2052,7 +2318,8 @@ async function exportPortal(p, kind, g, snap) {
   if (!snap) return;
   const base = `${p.short}_Report_${dmy(snap.date)}`;
   if (p.id === 'MRM' && snap.report) return exportMRM(p, snap, kind, g);
-  try {
+  const pin = p.id === 'CEIR' && snap.report && snap.report.pin;
+  {
     if (kind === 'pdf') {
       const doc = newPdf(g.pdfPass); let first = true;
       p.sections.forEach(d => {
@@ -2085,8 +2352,9 @@ async function exportPortal(p, kind, g, snap) {
           }
         });
       });
+      if (pin) ceirPinPdf(doc, pin, snap.date);
       pdfFinish(doc, `${p.short} Portal Report • ${ORG} • Confidential`);
-      doc.save(base + '.pdf');
+      savePdf(doc, base + '.pdf');
     } else {
       needLib('XLSX'); const wb = XLSX.utils.book_new();
       p.sections.forEach(d => {
@@ -2100,17 +2368,21 @@ async function exportPortal(p, kind, g, snap) {
         ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: pc.length + 2 } }, { s: { r: 1, c: 0 }, e: { r: 1, c: pc.length + 2 } }];
         XLSX.utils.book_append_sheet(wb, ws, sheetName(p.sections.length > 1 ? `${p.short} ${d.id}` : p.short));
       });
-      XLSX.writeFile(wb, base + '.xlsx');
+      if (pin) ceirPinSheets(wb, pin, snap.date);
+      saveXlsx(wb, base + '.xlsx');
     }
-    Api.log('REPORT_GENERATED', `${p.short} ${kind.toUpperCase()} report · data as on ${snap.date}`);
-    toast('Export ready: ' + base + '.' + kind, 'ok');
-  } catch (e) { console.error(e); toast('Export failed: ' + e.message, 'err', 7000); }
+  }
 }
 function sheetName(n, used) { let s = String(n).replace(/[\\\/\?\*\[\]:]/g, ' ').slice(0, 31); if (used) { let i = 2; const b = s.slice(0, 28); while (used.has(s)) s = b + ' ' + (i++); used.add(s); } return s; }
 
 /* ---------------- work done exports ---------------- */
 async function exportWD(kind) {
-  if (!lastWD) return; const { res, mode } = lastWD; const g = await reportDialog(kind, ''); if (!g) return;
+  if (!lastWD) return; const g = await reportDialog(kind, ''); if (!g) return;
+  let out; try { out = await withBusy('BUILDING REPORT', () => buildReport(() => buildWD(kind, g))); } catch (e) { return reportError('Work Done ' + (kind === 'pdf' ? 'PDF' : 'Excel'), e); }
+  deliver(out, `Work Done ${lastWD.mode} ${kind.toUpperCase()} · ${lastWD.res.from} to ${lastWD.res.to}`);
+}
+async function buildWD(kind, g) {
+  const { res, mode } = lastWD;
   const rows = wdRows(res), T = wdTotals(res);
   const base = `Work_Done_${mode === 'detail' ? 'Detailed' : 'At_a_Glance'}_${dmy(res.from)}_to_${dmy(res.to)}`;
   const dtxt = v => v === null || v === undefined ? '-' : (v > 0 ? '+' : '') + fmtN(v);
@@ -2119,7 +2391,7 @@ async function exportWD(kind) {
     const s = r.sec; return [s.d.label, s.s ? `${dmy(r.it.startDate)} to ${dmy(r.it.endDate)}` : `Only ${dmy(r.it.endDate)}`, dtxt(s.dR), dtxt(s.dC), dtxt(s.work), s.s ? `${fmtN(s.s.P)} -> ${fmtN(s.e.P)}` : fmtN(s.e.P), s.e.pct.toFixed(2) + '%'];
   });
   const notes = ['Received = increase in the cumulative portal total between the two snapshots; Closed = increase in closed/completed.', 'Sahayog work done = increase in URL requests. CEIR completion = recovered / traceability generated. NCRP closed includes FIR registered.'].concat(res.items.flatMap(it => it.notes));
-  try {
+  {
     if (kind === 'pdf') {
       const doc = newPdf(g.pdfPass); const W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight(); const c = [0, 150, 110];
       let y = pdfBand(doc, c, `WORK DONE REPORT — ${mode === 'detail' ? 'DETAILED' : 'AT A GLANCE'}`, `Period: ${dmy(res.from)} to ${dmy(res.to)}  (${res.days} day${res.days === 1 ? '' : 's'})`, ORG);
@@ -2163,7 +2435,7 @@ async function exportWD(kind) {
         });
       });
       pdfFinish(doc, `Work Done Report • ${ORG} • Confidential`);
-      doc.save(base + '.pdf');
+      savePdf(doc, base + '.pdf');
     } else {
       needLib('XLSX'); const wb = XLSX.utils.book_new(); const used = new Set();
       const aoa = [[`WORK DONE REPORT — ${mode === 'detail' ? 'DETAILED' : 'AT A GLANCE'}`], [`${ORG} • Period ${dmy(res.from)} to ${dmy(res.to)} (${res.days} days) • Generated ${res.generated}`], [],
@@ -2181,11 +2453,9 @@ async function exportWD(kind) {
         const w = XLSX.utils.aoa_to_sheet(a); w['!cols'] = [{ wch: 6 }, { wch: 30 }, { wch: 18 }, { wch: 18 }, { wch: 11 }, { wch: 14 }, { wch: 13 }, { wch: 16 }, { wch: 18 }];
         XLSX.utils.book_append_sheet(wb, w, sheetName(r.label, used));
       });
-      XLSX.writeFile(wb, base + '.xlsx');
+      saveXlsx(wb, base + '.xlsx');
     }
-    Api.log('WORK_DONE_REPORT', `${mode} ${kind.toUpperCase()} · ${res.from} to ${res.to}`);
-    toast('Export ready: ' + base + '.' + kind, 'ok');
-  } catch (e) { console.error(e); toast('Export failed: ' + e.message, 'err', 7000); }
+  }
 }
 function pdfBars(doc, x, y, w, h, items) {
   const max = Math.max(1, ...items.flatMap(i => [i.a, i.b])), bw = Math.min(9, (w - 10) / items.length * .3), base = y + h - 8;
