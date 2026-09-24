@@ -487,7 +487,7 @@ input.masked{-webkit-text-security:disc}
     </section>
   </main>
 
-  <footer class="credit-bar">© ARUN R <span style="opacity:.5;font-size:.8em;margin-left:8px">v2.3</span></footer>
+  <footer class="credit-bar">© ARUN R <span style="opacity:.5;font-size:.8em;margin-left:8px">v2.4</span></footer>
 </div>
 
 <div id="modal" class="modal hidden" role="dialog" aria-modal="true"></div>
@@ -711,15 +711,23 @@ const Api = {
   canReplace() { return !!this.user && (this.user.role === 'admin' || !!this.user.replace); }
 };
 async function publicIP() {
-  try { const r = await fetch('https://api.ipify.org?format=json', { cache: 'no-store' }); return (await r.json()).ip || 'unavailable'; } catch (e) { return 'unavailable'; }
+  // never let the IP lookup hold up sign-in for more than 2.5 s
+  const ac = new AbortController(), t = setTimeout(() => ac.abort(), 2500);
+  try { const r = await fetch('https://api.ipify.org?format=json', { cache: 'no-store', signal: ac.signal }); return (await r.json()).ip || 'unavailable'; } catch (e) { return 'unavailable'; } finally { clearTimeout(t); }
 }
+// looked up once, in the background, while the sign-in screen is showing
+let _ipP = null;
+function getIP() { return _ipP || (_ipP = publicIP()); }
 async function importDataKey(b64key) { return crypto.subtle.importKey('raw', unb64(b64key), 'AES-GCM', false, ['encrypt', 'decrypt']); }
 
 /* ---------------- shared encrypted store (snapshots on the backend) ---------------- */
 const Store = {
   list: [], cache: new Map(),
   aad: (portal, date) => 'snap:' + portal + ':' + date,
-  async refresh() { const j = await Api.call('listSnaps'); this.list = j.snaps || []; if (typeof updateNavCounts === 'function') updateNavCounts(); return this.list; },
+  async refresh() { const j = await Api.call('listSnaps'); this.setList(j.snaps || []); return this.list; },
+  setList(l) { this.list = l; if (typeof updateNavCounts === 'function') updateNavCounts(); },
+  // update the local list after a save instead of downloading the whole list again
+  upsert(e) { this.setList(this.list.filter(s => s.id !== e.id && !(s.portal === e.portal && s.date === e.date)).concat([e])); },
   snapsOf(pid) { return this.list.filter(s => s.portal === pid).sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : 0); },
   find(pid, date) { return this.list.find(s => s.portal === pid && s.date === date); },
   async getMany(ids) {
@@ -746,7 +754,11 @@ const Store = {
       await this.refresh(); const e = this.find(snap.portal, snap.date); j = { ok: true, id: e && e.id, replaced: !!replace };
       if (e) this.cache.set(e.id, snap); return j;
     }
-    if (j.ok) { await this.refresh(); this.cache.set(j.id, snap); }
+    if (j.ok) {
+      if (Array.isArray(j.snaps)) this.setList(j.snaps);
+      else this.upsert({ id: j.id, portal: snap.portal, date: snap.date, savedBy: snap.savedBy, savedAt: snap.savedAt });
+      this.cache.set(j.id, snap);
+    }
     return j;
   },
   async putRaw(portal, date, content, replace, detail) { const j = await Api.call('putSnap', { portal, date, content, replace: !!replace, detail: detail || '' }); return j; }
@@ -1715,6 +1727,10 @@ async function boot() {
   let lm = ''; try { lm = sessionStorage.getItem('cps_lockmsg') || ''; sessionStorage.removeItem('cps_lockmsg'); } catch (e) { }
   const c = cfg();
   if (!c.clientId || !c.backend) { showCfg(); return; }
+  // speed-ups: look up the public IP now, and wake the Apps Script backend
+  // while the officer is still clicking "Sign in" (no data is sent)
+  getIP();
+  try { fetch(c.backend, { method: 'GET', mode: 'no-cors', cache: 'no-store' }).catch(() => { }); } catch (e) { }
   showSignin(lm);
 }
 function showCfg() {
@@ -1741,13 +1757,15 @@ function showSignin(msg) {
 }
 async function onGoogleCredential(resp) {
   try {
-    const r = await withBusy('VERIFYING ACCESS', async () => { Api.ip = await publicIP(); return Api.call('login', { idToken: resp.credential }); });
+    const r = await withBusy('VERIFYING ACCESS', async () => { Api.ip = await getIP(); return Api.call('login', { idToken: resp.credential }); });
     if (!r.ok) {
       loginMsg(r.status === 'pending' ? 'Access request sent. The admin must approve your Google account before you can use the app.' : r.status === 'blocked' ? 'This account has been blocked by the admin.' : 'Access denied.', 'err');
       return;
     }
     Api.session = r.session; Api.user = r.user; Api.key = await importDataKey(r.dataKey); r.dataKey = null;
-    await withBusy('LOADING ENCRYPTED DATA', () => Store.refresh());
+    // if the backend already sent the backup list with the login reply, skip the second round trip
+    if (Array.isArray(r.snaps)) Store.setList(r.snaps);
+    else await withBusy('LOADING ENCRYPTED DATA', () => Store.refresh());
     enterApp();
   } catch (e) { loginMsg(e.message, 'err'); }
 }
@@ -2119,7 +2137,8 @@ async function reportFlow(p, kind) {
   let g, ex = null, needBackup = false;
   if (st.backedSig === sig) { g = await reportDialog(kind, ''); if (!g) return; }
   else {
-    try { await Store.refresh(); } catch (e) { toast(e.message, 'err'); return; }
+    // check the server list in the background while the dialog is open, instead of making the officer wait first
+    const fresh = Store.refresh().then(() => true, () => false);
     ex = Store.find(p.id, date);
     let html = `<p style="margin:0">Generating this report will <b>back up</b> the data (encrypted) as the <b>${esc(p.short)}</b> record for <b>${dmy(date)}</b>.</p>`;
     if (ex) {
@@ -2129,6 +2148,9 @@ async function reportFlow(p, kind) {
         <label class="chk"><input type="radio" name="rpRep" value="keep" ${Api.canReplace() ? '' : 'checked'}> No — keep the old backup, only generate the report</label>`;
     }
     g = await reportDialog(kind, html, true); if (!g) return;
+    const ex2 = (await fresh) ? Store.find(p.id, date) : ex;
+    if (!ex && ex2) { toast(`Another user has just backed up ${p.short} · ${dmy(date)} — please choose again.`, 'warn', 6000); return reportFlow(p, kind); }
+    if (ex && ex2) ex = ex2;
     needBackup = !ex || g.replace;
   }
   // 1) build the report in memory first — if it fails, nothing is backed up
@@ -2139,7 +2161,7 @@ async function reportFlow(p, kind) {
     clean.savedAt = new Date().toISOString(); clean.savedBy = Api.user.email;
     let r, err = null;
     try { r = await withBusy('ENCRYPTING & BACKING UP', () => Store.put(clean, !!ex, kind.toUpperCase() + ' report generated')); } catch (e) { err = e; }
-    if (!err && !r.ok && r.exists) err = new Error('Another user backed up this date a moment ago.');
+    if (!err && !r.ok && r.exists) { err = new Error('Another user backed up this date a moment ago.'); Store.refresh().catch(() => { }); }
     if (err) {
       Api.log('BACKUP_ERROR', `${p.short} ${date}: ${err.message}`);
       const go = await modal({ title: 'Backup failed', ok: 'Download report without backup', html: `<div class="warnbox">The data could not be backed up: <b>${esc(err.message)}</b></div><p style="margin:0">The report itself is ready. You can download it now (the data will <b>not</b> be stored), or cancel, fix the problem and generate it again.</p>` });
@@ -2160,7 +2182,7 @@ async function deleteSnap(p, id) {
   const e = Store.list.find(s => s.id === id); if (!e) return;
   const ok = await modal({ title: 'Delete backup?', html: `<p>Delete the ${esc(p.short)} backup of <b>${dmy(e.date)}</b>? It is moved to the <code>_replaced</code> folder in Drive (recoverable by the admin).</p>`, ok: 'Delete', danger: true });
   if (!ok) return;
-  try { await Api.call('deleteSnap', { id }); await Store.refresh(); } catch (x) { toast(x.message, 'err'); return; }
+  try { await Api.call('deleteSnap', { id }); Store.setList(Store.list.filter(s => s.id !== id)); Store.cache.delete(id); } catch (x) { toast(x.message, 'err'); return; }
   const st = PS[p.id]; if (st.viewingId === id) { st.viewingId = null; st.current = null; renderResult(p.id); }
   renderHistory(p.id); toast('Backup deleted.', 'warn');
 }
