@@ -329,6 +329,59 @@ input.masked{-webkit-text-security:disc}
 .bkbar .sp{flex:1}
 .bitem input[type=checkbox]{accent-color:var(--mag);width:16px;height:16px}
 .btn:disabled{opacity:.4;cursor:not-allowed}
+/* ---- at-a-glance 3D cards ---- */
+.glance{display:grid;grid-template-columns:repeat(auto-fill,minmax(370px,1fr));gap:20px;margin:0 0 20px;perspective:1400px}
+.gl3d{--pc:var(--cyan);position:relative;border-radius:22px;padding:16px 16px 18px;color:var(--ink);cursor:pointer;
+  background:linear-gradient(150deg,color-mix(in srgb,var(--pc) 38%,#0b1a2e) 0%,#0a1628 52%,color-mix(in srgb,var(--pc) 20%,#050c18) 100%);
+  border:1px solid color-mix(in srgb,var(--pc) 55%,transparent);
+  box-shadow:0 1px 0 rgba(255,255,255,.2) inset,0 -8px 18px rgba(0,0,0,.35) inset,0 7px 0 -1px color-mix(in srgb,var(--pc) 32%,#040a14),0 22px 34px -14px rgba(0,0,0,.8),0 0 30px -8px color-mix(in srgb,var(--pc) 65%,transparent);
+  transform:rotateX(5deg);transform-origin:50% 100%;transform-style:preserve-3d;transition:transform .35s cubic-bezier(.2,.8,.2,1),box-shadow .35s}
+.gl3d:hover{transform:rotateX(0) translateY(-5px);box-shadow:0 1px 0 rgba(255,255,255,.25) inset,0 -8px 18px rgba(0,0,0,.3) inset,0 9px 0 -1px color-mix(in srgb,var(--pc) 38%,#040a14),0 30px 40px -14px rgba(0,0,0,.85),0 0 40px -6px color-mix(in srgb,var(--pc) 80%,transparent)}
+.gl3d::before{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(180deg,rgba(255,255,255,.16),transparent 36%);pointer-events:none}
+.gl-top{display:flex;align-items:center;gap:10px;margin-bottom:13px;position:relative}
+.gl-top b{font-family:var(--fd);letter-spacing:.16em;font-size:17px;color:#fff;text-shadow:0 0 14px var(--pc),0 2px 0 rgba(0,0,0,.5)}
+.gl-top small{margin-left:auto;font-size:12.5px;color:var(--ink2);text-align:right;letter-spacing:.04em}
+.gl-ic{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:linear-gradient(145deg,color-mix(in srgb,var(--pc) 45%,transparent),rgba(0,0,0,.25));box-shadow:0 0 0 1px color-mix(in srgb,var(--pc) 65%,transparent) inset,0 4px 0 rgba(0,0,0,.35),0 8px 14px -6px rgba(0,0,0,.6)}
+.gl-ic svg{width:20px;height:20px;color:#fff;filter:drop-shadow(0 0 6px var(--pc))}
+.gl-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;position:relative}
+.gl-col{display:flex;flex-direction:column;gap:10px}
+.gl-d,.gl-k,.gl-ar{background:linear-gradient(180deg,rgba(255,255,255,.09),rgba(0,0,0,.2));border:1px solid rgba(255,255,255,.14);border-radius:13px;box-shadow:0 1px 0 rgba(255,255,255,.14) inset,0 3px 0 rgba(0,0,0,.35),0 8px 14px -8px rgba(0,0,0,.7)}
+.gl-d{padding:10px 12px;flex:1}
+.gl-d i,.gl-ar span,.gl-k span{font-style:normal;font-size:10.5px;letter-spacing:.2em;color:var(--ink3);font-weight:700}
+.gl-d b{display:block;font-family:var(--fm);font-size:17px;color:#fff;margin:2px 0 7px}
+.gl-d div{display:flex;justify-content:space-between;align-items:baseline;font-size:12.5px;color:var(--ink2);letter-spacing:.1em;font-weight:600}
+.gl-d em{font-style:normal;font-family:var(--fm);font-size:16px;color:#fff}
+.gl-d.last{border-color:color-mix(in srgb,var(--pc) 70%,transparent);background:linear-gradient(180deg,color-mix(in srgb,var(--pc) 22%,transparent),rgba(0,0,0,.2))}
+.gl-arrows{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.gl-ar{padding:7px 6px;text-align:center}
+.gl-ar i{font-style:normal;font-size:20px;display:block;line-height:1.05;color:var(--ink2)}
+.gl-ar b{font-family:var(--fm);font-size:18px;color:#fff;display:block}
+.gl-ar span{font-size:9.5px;letter-spacing:.14em}
+.gl-ar.up i{color:var(--cyan);text-shadow:0 0 10px var(--cyan)}
+.gl-ar.good i{color:var(--green);text-shadow:0 0 10px var(--green)}
+.gl-ar.bad i{color:var(--red);text-shadow:0 0 10px var(--red)}
+.gl-k{padding:8px 12px;display:flex;align-items:baseline;justify-content:space-between;gap:4px 8px;flex-wrap:wrap}
+.gl-k b{font-family:var(--fm);font-size:19px;color:#fff}
+.gl-k small{flex-basis:100%;font-size:10.5px;color:var(--ink3);margin-top:-3px}
+.gl-k.wd b{color:var(--green);text-shadow:0 0 10px color-mix(in srgb,var(--green) 60%,transparent)}
+.gl-k.wd.neg b{color:var(--red)}
+.gl-k.pc b{color:var(--pc);filter:brightness(1.35)}
+.gl-bar{flex-basis:100%;height:6px;border-radius:6px;background:rgba(0,0,0,.35);overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.5) inset}
+.gl-bar u{display:block;height:100%;background:linear-gradient(90deg,color-mix(in srgb,var(--pc) 60%,#fff),var(--pc));box-shadow:0 0 10px var(--pc)}
+.gl-none{position:relative;padding:18px 6px 8px;color:var(--ink2);font-size:14px}
+.p-hero + .glance{margin-top:18px}
+@media(max-width:560px){.glance{grid-template-columns:1fr}.gl-grid{grid-template-columns:1fr}.gl3d{transform:none}}
+@media(prefers-reduced-motion:reduce){.gl3d,.gl3d:hover{transform:none;transition:none}}
+/* ---- 3D navigation tabs ---- */
+.nav-i{background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(0,0,0,.22));border:1px solid rgba(255,255,255,.08);margin-bottom:7px;
+  box-shadow:0 1px 0 rgba(255,255,255,.08) inset,0 3px 0 rgba(0,0,0,.4),0 8px 14px -8px rgba(0,0,0,.7);transition:transform .15s,box-shadow .15s,background .15s}
+.nav-i:hover{transform:translateY(-1px);background:linear-gradient(180deg,color-mix(in srgb,var(--pc) 16%,transparent),rgba(0,0,0,.2));box-shadow:0 1px 0 rgba(255,255,255,.12) inset,0 4px 0 rgba(0,0,0,.4),0 10px 16px -8px rgba(0,0,0,.7)}
+.nav-i:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(255,255,255,.08) inset,0 1px 0 rgba(0,0,0,.4)}
+.nav-i.active{color:#fff;border-color:color-mix(in srgb,var(--pc) 70%,transparent);transform:translateY(-1px);
+  background:linear-gradient(180deg,color-mix(in srgb,var(--pc) 55%,#0b1a2e),color-mix(in srgb,var(--pc) 18%,#07101e));
+  box-shadow:0 1px 0 rgba(255,255,255,.3) inset,0 4px 0 color-mix(in srgb,var(--pc) 38%,#040a14),0 0 20px -4px var(--pc)}
+.nav-i.active svg{color:#fff}
+.nav-i svg{filter:drop-shadow(0 0 6px color-mix(in srgb,var(--pc) 75%,transparent))}
 </style>
 </head>
 <body>
@@ -487,7 +540,7 @@ input.masked{-webkit-text-security:disc}
     </section>
   </main>
 
-  <footer class="credit-bar">© ARUN R <span style="opacity:.5;font-size:.8em;margin-left:8px">v2.7</span></footer>
+  <footer class="credit-bar">© ARUN R <span style="opacity:.5;font-size:.8em;margin-left:8px">v3.0</span></footer>
 </div>
 
 <div id="modal" class="modal hidden" role="dialog" aria-modal="true"></div>
@@ -737,7 +790,7 @@ const Store = {
       const j = await Api.call('getSnaps', { ids: need.slice(i, i + 40) });
       for (const x of j.snaps) {
         const e = this.list.find(s => s.id === x.id);
-        try { this.cache.set(x.id, await unseal(Api.key, JSON.parse(x.content), this.aad(e.portal, e.date))); }
+        try { this.cache.set(x.id, normalizeSnap(await unseal(Api.key, JSON.parse(x.content), this.aad(e.portal, e.date)))); }
         catch (err) { throw new Error(`Backup ${e.portal} ${dmy(e.date)} could not be decrypted (wrong data key or damaged file).`); }
       }
     }
@@ -816,12 +869,16 @@ function downloadBlob(blob, name) {
    ===================================================================== */
 const sumK = (v, keys) => keys.reduce((a, k) => a + num(v[k]), 0);
 const secR = (d, v) => num(v[d.R]);
-const secC = (d, v) => sumK(v, d.C);
+const secC = (d, v) => d.cFn ? d.cFn(v) : sumK(v, d.C);
 const secP = (d, v) => sumK(v, d.P);
 const secPct = (d, v) => { const n = d.pct ? sumK(v, d.pct[0]) : secC(d, v); const den = d.pct ? sumK(v, d.pct[1]) : secR(d, v); return den > 0 ? n * 100 / den : 0; };
 const tierOf = (d, p) => { const [g, m] = d.tiers || [90, 70]; return p >= g ? 'g' : p >= m ? 'm' : 'b'; };
 function findKey(keys, patterns) { for (const re of patterns) { const k = keys.find(x => re.test(String(x).trim())); if (k !== undefined) return k; } return null; }
 
+// Work done rule per section: 'R' = increase in total requests (Sahayog),
+// 'P' = reduction in pending (MRM police pending), default = increase in disposed/closed.
+function workOf(d, dR, dC, dPchange) { return d.work === 'R' ? dR : d.work === 'P' ? -dPchange : dC; }
+function workLabel(d) { return d.work === 'R' ? 'increase in total requests' : d.work === 'P' ? 'reduction in police pending' : 'increase in disposed'; }
 function mkSection(d, stations) {
   const totals = {}; d.cols.forEach(c => totals[c.k] = 0);
   stations.forEach(s => d.cols.forEach(c => { totals[c.k] += num(s.v[c.k]); }));
@@ -1187,7 +1244,7 @@ const SAH_ALIAS = (() => {
   const raw = {
     'ET North': ['Ernakulam Town North', 'Ernakulam North', 'Town North', 'E T North', 'ETN', 'Ernakulam Town (North)'],
     'ET South': ['Ernakulam Town South', 'Ernakulam South', 'Town South', 'E T South', 'ETS', 'Ernakulam Town (South)'],
-    'Hillpalace': ['Hill Palace'], 'Fortkochi': ['Fort Kochi'], 'Cybercrime PS': ['Cyber Crime', 'Cyber'],
+    'Hillpalace': ['Hill Palace'], 'Fortkochi': ['Fort Kochi', 'Fort Cochin', 'Fortcochin'], 'Palluruthy': ['Palluruthy Kasaba', 'Palluruthi Kasaba', 'Palluruthi'], 'Cybercrime PS': ['Cyber Crime', 'Cyber'],
     'Infopark': ['Info Park'], 'Harbour PS': ['Kochi Harbour', 'Harbour'], 'Coastal PS': ['Kochi Coastal', 'Coastal'],
     'Vanitha': ['Vanitha Cell', 'Women Cell'], 'Central PS': ['Ernakulam Central', 'Central']
   };
@@ -1204,6 +1261,19 @@ function sahayogMerge(rows) {
   return list;
 }
 
+// Records saved by older versions: re-merge Sahayog station names (ET South / Ernakulam Town South …)
+// and recompute the summary with the current rules, so old and new backups compare correctly.
+function normalizeSnap(sn) {
+  try {
+    const p = sn && P_BY[sn.portal]; if (!p || !sn.sections) return sn;
+    if (p.id === 'SAHAYOG' && sn.sections.main && sn.sections.main.stations) {
+      const rows = sn.sections.main.stations.map(x => [x.name, num(x.v.total), num(x.v.removed), num(x.v.unable), num(x.v.addl), num(x.v.pending)]);
+      sn.sections.main = mkSection(p.sections[0], sahayogMerge(rows));
+    }
+    sn.summary = summarize(p, sn.sections);
+  } catch (e) { console.warn('normalizeSnap', e); }
+  return sn;
+}
 /* ---------------- REGISTRY ---------------- */
 const PORTALS = [
   {
@@ -1221,7 +1291,7 @@ const PORTALS = [
       cols: [{ k: 'total', l: 'No. of Restorable' }, { k: 'vrr', l: 'Victim Requests Remains*', pair: 'vrrAck' }, { k: 'vc', l: 'Victims Contacted' }, { k: 'vp', l: 'Victims Pending' }, { k: 'pas', l: 'Pending at Stations' }, { k: 'orb', l: 'Order Refer Back' }, { k: 'pab', l: 'Pending at Bank' }, { k: 'bc', l: 'Bank Contacted' }, { k: 'bp', l: 'Bank Pending' }, { k: 'rnc', l: 'Restoration not Complied' }, { k: 'rc', l: 'Restoration Completed' }, { k: 'ar', l: 'Already Refunded' },
         { k: 'vrrAck', l: 'Victims (Ack) Remaining', hide: 1 }, { k: 'amt', l: 'Total Amount Reported', money: 1, hide: 1 }, { k: 'amtRes', l: 'Total Amount Restored', money: 1, hide: 1 }],
       calc: [{ k: '__police', l: 'Completion % (Police)', fn: mrmPctPolice }],
-      R: 'total', C: ['rc'], P: ['vrr', 'pas', 'orb', 'pab', 'rnc'], tiers: [60, 20], rl: 'Restorable requests', cl: 'Restoration completed', pl: 'Pending (all stages)', pctl: 'Restoration %'
+      R: 'total', C: ['rc'], cFn: v => num(v.total) - num(v.vrr) - num(v.pas), P: ['vrr', 'pas'], work: 'P', tiers: [80, 60], rl: 'Restorable requests', cl: 'Moved beyond police', pl: 'Police pending (VRR + LEA)', pctl: 'Completion % (Police)'
     }],
     async load(files) { const out = []; for (const f of files) { const wb = await readWorkbook(f, { cellDates: false }); const sn = wb.SheetNames.includes('I4C') ? 'I4C' : wb.SheetNames[0]; out.push({ name: f.name, rows: sheetRows(wb.Sheets[sn]) }); } return { files: out }; },
     build(c, o) {
@@ -1990,6 +2060,7 @@ function buildPortalViews() {
       <div style="position:relative;z-index:1"><h2><em>${esc(p.short.toUpperCase())}</em> PORTAL</h2><p>${esc(p.full)} · ${esc(p.tag)}</p></div>
       <div class="latest" id="latest-${p.id}"></div>
     </div>
+    <div class="glance" id="glance-${p.id}"></div>
     <div class="p-grid">
       <div class="glass card corner" style="--pc:${p.color}">
         <h3>1 · Load raw data</h3>
@@ -2129,7 +2200,7 @@ function renderResult(pid) {
   p.sections.forEach(d => {
     const sec = snap.sections[d.id];
     if (!sec) { h += `<div class="sec"><h3 class="sec-t">${esc(d.label)}</h3><div class="notes">This sheet was not present in the uploaded file.</div></div>`; return; }
-    const s = snap.summary[d.id];
+    const s = summarize(p, snap.sections)[d.id];
     const money = d.cols.filter(c => c.money).map(c => statCard(c.l, sec.totals[c.k], 'var(--violet)', 'm')).join('');
     h += `<div class="sec" style="--pc:${p.color}"><h3 class="sec-t">${esc(d.label)}</h3>
       <div class="stats">${statCard('Stations', s.n, p.color)}${statCard(d.rl, s.R, 'var(--cyan)')}${statCard(d.cl, s.C, 'var(--green)')}${statCard(d.pl, s.P, 'var(--amber)')}${money}
@@ -2139,7 +2210,45 @@ function renderResult(pid) {
   if (pid === 'CEIR' && snap.report && snap.report.pin) h += ceirPinHTML(p, snap.report.pin);
   box.innerHTML = h; fillTables(box); animateCounts(box); wireCEIRPin(box);
 }
+/* ---------------- at-a-glance cards (latest backup vs the one before) ---------------- */
+const sgn = v => v == null ? '—' : (v > 0 ? '+' : '') + fmtN(v);
+function glanceHTML(p) {
+  const l = Store.snapsOf(p.id), le = l[l.length - 1], pe = l[l.length - 2];
+  const E = le && Store.cache.get(le.id), S = pe && Store.cache.get(pe.id);
+  const top = sub => `<div class="gl-top"><span class="gl-ic">${icon(p.icon)}</span><b>${esc(p.short.toUpperCase())}</b><small>${sub}</small></div>`;
+  if (!E) return `<div class="gl3d empty" style="--pc:${p.color}" data-go="${p.id}">${top(esc(p.full))}<div class="gl-none">${le ? 'Loading…' : 'No backup yet — process data and generate a report to start the comparison.'}</div></div>`;
+  return p.sections.map(d => {
+    const es = E.sections[d.id]; if (!es) return '';
+    const ss = S && S.sections[d.id];
+    const e = summ(d, es.totals), s = ss ? summ(d, ss.totals) : null;
+    const dR = s ? e.R - s.R : null, dC = s ? e.C - s.C : null, dPch = s ? e.P - s.P : null, w = s ? workOf(d, dR, dC, dPch) : null;
+    const box = (tag, date, x, cls) => `<div class="gl-d ${cls}"><i>${tag}</i><b>${date ? dmy(date) : '—'}</b><div><span>TOTAL</span><em>${x ? fmtN(x.R) : '—'}</em></div><div><span>DISPOSED</span><em>${x ? fmtN(x.C) : '—'}</em></div></div>`;
+    const pd = dPch == null ? null : -dPch; // positive = pending came down
+    return `<div class="gl3d" style="--pc:${p.color}" data-go="${p.id}">
+      ${top(p.sections.length > 1 ? esc(d.label) : (s ? 'vs previous backup' : 'only one backup so far'))}
+      <div class="gl-grid">
+        <div class="gl-col">${box('PREVIOUS', s ? pe.date : null, s, 'prev')}${box('LATEST', le.date, e, 'last')}</div>
+        <div class="gl-col">
+          <div class="gl-arrows">
+            <div class="gl-ar up" title="Change in total"><i>${dR != null && dR < 0 ? '▽' : '△'}</i><b>${sgn(dR)}</b><span>TOTAL</span></div>
+            <div class="gl-ar ${pd == null ? '' : pd >= 0 ? 'good' : 'bad'}" title="Change in pending"><i>${pd != null && pd < 0 ? '△' : '▽'}</i><b>${pd == null ? '—' : fmtN(Math.abs(pd))}</b><span>${pd != null && pd < 0 ? 'PENDING UP' : 'PENDING DOWN'}</span></div>
+          </div>
+          <div class="gl-k"><span>TOTAL PENDING</span><b>${fmtN(e.P)}</b></div>
+          <div class="gl-k wd ${w != null && w < 0 ? 'neg' : ''}"><span>WORK DONE</span><b>${sgn(w)}</b><small>${esc(workLabel(d))}</small></div>
+          <div class="gl-k pc"><span>COMPLETION %</span><b>${e.pct.toFixed(1)}%</b><i class="gl-bar"><u style="width:${Math.max(0, Math.min(100, e.pct))}%"></u></i></div>
+        </div>
+      </div></div>`;
+  }).join('');
+}
+async function renderGlance(pid) {
+  const el = $('#glance-' + pid); if (!el || !Api.key) return;
+  const l = Store.snapsOf(pid), ids = l.slice(-2).map(x => x.id), sig = ids.join('|');
+  if (el.dataset.sig === sig && el.innerHTML) return;
+  el.dataset.sig = sig; el.innerHTML = glanceHTML(P_BY[pid]);
+  if (ids.some(i => !Store.cache.has(i))) { try { await Store.getMany(ids); } catch (e) { return; } if (el.dataset.sig === sig) el.innerHTML = glanceHTML(P_BY[pid]); }
+}
 function renderHistory(pid) {
+  renderGlance(pid);
   const p = P_BY[pid], st = PS[pid], list = Store.snapsOf(pid).slice().reverse();
   $('#hist-' + pid).innerHTML = list.length ? list.map(e => `<span class="hchip${st.viewingId === e.id ? ' active' : ''}" style="--pc:${p.color}" data-sid="${e.id}" title="Backed up ${esc(e.savedAt ? new Date(e.savedAt).toLocaleString('en-IN') : '')} by ${esc(e.savedBy)}">${dmy(e.date)}${Api.isAdmin() ? `<button data-del="${e.id}" title="Delete backup (admin)">✕</button>` : ''}</span>`).join('') : '<span class="tiny muted">No records backed up yet.</span>';
   const last = list[0];
@@ -2279,10 +2388,13 @@ async function renderDash() {
   const lastOf = p => { const l = Store.snapsOf(p.id); return l[l.length - 1]; };
   $('#dashTiles').innerHTML = ports.length ? '<div class="tiny muted">Decrypting latest records…</div>' : '<div class="notes">No analyzers are assigned to your account yet — ask the admin.</div>';
   let snapsById = {};
-  try { const ids = ports.map(lastOf).filter(Boolean).map(e => e.id); const got = await Store.getMany(ids); ids.forEach((id, i) => snapsById[id] = got[i]); } catch (e) { toast(e.message, 'err'); }
+  try { const ids = ports.map(lastOf).filter(Boolean).map(e => e.id); const prevIds = ports.map(p => { const l = Store.snapsOf(p.id); return l[l.length - 2]; }).filter(Boolean).map(e => e.id); const got = await Store.getMany(ids.concat(prevIds)); ids.forEach((id, i) => snapsById[id] = got[i]); } catch (e) { toast(e.message, 'err'); }
+  let gw = $('#dashGlance'); if (!gw) { gw = document.createElement('div'); gw.id = 'dashGlance'; $('#dashTiles').before(gw); }
+  gw.innerHTML = ports.length ? `<h3 class="sec-t" style="margin:4px 0 12px">AT A GLANCE <span class="tiny muted" style="font-family:var(--fb);letter-spacing:0">latest backup vs previous backup</span></h3><div class="glance">${ports.map(glanceHTML).join('')}</div>` : '';
+  $$('#dashGlance [data-go]').forEach(t => t.onclick = () => go(t.dataset.go));
   if (ports.length) $('#dashTiles').innerHTML = ports.map(p => {
     const last = lastOf(p), list = Store.snapsOf(p.id), snap = last && snapsById[last.id];
-    const d = p.sections[0]; const s = snap && snap.summary && (snap.summary[d.id] || Object.values(snap.summary)[0]);
+    const d = p.sections[0]; const sm = snap && snap.sections ? summarize(p, snap.sections) : null; const s = sm && (sm[d.id] || Object.values(sm)[0]);
     return `<div class="glass tile corner" style="--pc:${p.color}" data-go="${p.id}" tabindex="0"><div class="pulse"></div>
       <div class="tile-h"><div class="hex sm" style="--pc:${p.color}">${icon(p.icon)}</div><div><b>${esc(p.short.toUpperCase())}</b><small>${esc(p.full)}</small></div></div>
       <div class="tile-b">${ringHTML(s ? s.pct : 0, p.color)}<div class="tile-stats">
@@ -2347,9 +2459,9 @@ async function computeWD(from, to, pids) {
       const stations = [...map.values()].map(o => {
         const a = o.s || { R: 0, C: 0, P: 0, pct: 0 }, b = o.e || { R: 0, C: 0, P: 0, pct: 0 };
         const r = { name: o.name, sR: ss ? a.R : null, eR: b.R, sP: ss ? a.P : null, eP: b.P, pctE: b.pct, dR: ss ? b.R - a.R : null, dC: ss ? b.C - a.C : null, dP: ss ? b.P - a.P : null };
-        r.work = ss ? (d.work === 'R' ? r.dR : r.dC) : null; return r;
+        r.work = ss ? workOf(d, r.dR, r.dC, r.dP) : null; return r;
       }).sort((x, y) => (y.work ?? 0) - (x.work ?? 0) || (y.dR ?? 0) - (x.dR ?? 0) || x.name.localeCompare(y.name));
-      const sec = { d, s, e, dR, dC, work: s ? (d.work === 'R' ? dR : dC) : null, dP: s ? e.P - s.P : null, stations };
+      const sec = { d, s, e, dR, dC, work: s ? workOf(d, dR, dC, e.P - s.P) : null, dP: s ? e.P - s.P : null, stations };
       if (s && (dR < 0 || dC < 0)) item.notes.push(`${d.label}: portal totals decreased in this period (${dR < 0 ? 'received ' + dR : ''}${dR < 0 && dC < 0 ? ', ' : ''}${dC < 0 ? 'closed ' + dC : ''}) — usually a data correction or reset in the portal; shown as-is.`);
       item.sections.push(sec);
     });
@@ -2383,7 +2495,7 @@ function renderWD(res, mode) {
     h += `<div class="glass gcard" style="--pc:${p.color}"><h4>${esc(d.label)}<small>${ok ? dmy(r.it.startDate) + ' → ' + dmy(r.it.endDate) : 'as on ' + dmy(r.it.endDate)}</small></h4>
       <div class="gg"><div><b ${ok ? `data-v="${s.dR}"` : ''}>${ok ? 0 : '—'}</b><span>${esc(d.rl)} ↑</span></div><div><b ${ok ? `data-v="${s.dC}"` : ''}>${ok ? 0 : '—'}</b><span>${esc(d.cl)} ↑</span></div>
       <div><b>${ok ? fmtN(s.s.P) + ' → ' + fmtN(s.e.P) : fmtN(s.e.P)}</b><span>Pending</span></div><div><b>${s.e.pct.toFixed(1)}%</b><span>${esc(d.pctl || 'Completion')}</span></div></div>
-      <div class="ft">${ok ? `WORK DONE: <b style="color:#fff">${fmtN(s.work)}</b>${d.work === 'R' ? ' (increase in requests)' : ''}` : 'Only one snapshot — no comparison'}</div></div>`;
+      <div class="ft">${ok ? `WORK DONE: <b style="color:#fff">${fmtN(s.work)}</b> (${workLabel(d)})` : 'Only one snapshot — no comparison'}</div></div>`;
   });
   h += `</div><div class="glass card" style="margin-bottom:18px"><h3>Received vs work done</h3><canvas class="chart" id="wdChart"></canvas></div>`;
   const gl = rows.map(r => {
@@ -2397,7 +2509,7 @@ function renderWD(res, mode) {
     h += `<div class="sec" style="--pc:${p.color}"><h3 class="sec-t">${esc(d.label)} — station-wise <span class="tiny muted" style="font-family:var(--fb);letter-spacing:0">(${s.s ? dmy(r.it.startDate) + ' → ' + dmy(r.it.endDate) : 'single snapshot ' + dmy(r.it.endDate)})</span></h3>
       ${tableHTML({ cols: [{ k: 'name', l: 'Police Station', f: 'name' }, { k: 'dR', l: d.rl + ' ↑', f: 'd' }, { k: 'dC', l: d.cl + ' ↑', f: 'd' }, { k: 'work', l: 'Work done', f: 'd' }, { k: 'sP', l: 'Pending (start)', f: 'n' }, { k: 'eP', l: 'Pending (end)', f: 'n' }, { k: 'dP', l: 'Change in pending', f: 'dp' }, { k: 'pctE', l: (d.pctl || 'Completion %') + ' (end)', f: 'pct' }], rows: s.stations, totals: { name: 'TOTAL', dR: s.dR, dC: s.dC, work: s.work, sP: s.s ? s.s.P : null, eP: s.e.P, dP: s.dP, pctE: s.e.pct }, tier: v => tierOf(d, v) })}</div>`;
   });
-  const notes = [`<li>Received = increase in the portal's cumulative total between the two snapshots; Closed = increase in closed/completed.</li>`, `<li>Sahayog work done = increase in URL requests (as specified). CEIR completion = recovered ÷ traceability generated. NCRP closed includes FIR registered.</li>`].concat(res.items.flatMap(it => it.notes).map(n => `<li>${esc(n)}</li>`));
+  const notes = [`<li>Received = increase in the portal's cumulative total between the two snapshots; Closed = increase in closed/completed.</li>`, `<li>Work done — Sahayog: increase in total URL requests. MRM: reduction in police pending (Victim Requests Remains + Pending at LEA). Other portals: increase in disposed / closed.</li>`, `<li>MRM completion % = (total restorable − police pending) ÷ total restorable. CEIR completion = recovered ÷ traceability generated. NCRP closed includes FIR registered.</li>`].concat(res.items.flatMap(it => it.notes).map(n => `<li>${esc(n)}</li>`));
   h += `<ul class="notes">${notes.join('')}</ul>`;
   $('#wdReport').innerHTML = h; fillTables($('#wdReport')); animateCounts($('#wdReport'));
   drawChart($('#wdChart'), rows.filter(r => r.sec && r.sec.s).map(r => ({ label: r.label, a: Math.max(0, r.sec.dR), b: Math.max(0, r.sec.work), color: r.it.p.color })));
@@ -2506,13 +2618,14 @@ async function exportPortal(p, kind, g, snap) {
   if (!snap) return;
   const base = `${p.short}_Report_${dmy(snap.date)}`;
   if (p.id === 'MRM' && snap.report) return exportMRM(p, snap, kind, g);
+  if (p.id === 'SAHAYOG' && kind === 'pdf') return exportSahayogPdf(p, snap, g);
   const pin = p.id === 'CEIR' && snap.report && snap.report.pin;
   {
     if (kind === 'pdf') {
       const doc = newPdf(g.pdfPass); let first = true;
       p.sections.forEach(d => {
         const sec = snap.sections[d.id]; if (!sec) return; if (!first) doc.addPage(); first = false;
-        const s = snap.summary[d.id], c = p.print;
+        const s = summarize(p, snap.sections)[d.id], c = p.print;
         let y = pdfBand(doc, c, `${p.short} — ${d.label} — Station-wise Report`, `${p.full}  •  Data as on ${dmy(snap.date)}${snap.meta && snap.meta.from ? `  •  Period ${snap.meta.from} to ${snap.meta.to}` : ''}`, ORG);
         const cards = [[fmtN(s.R), d.rl], [fmtN(s.C), d.cl], [fmtN(s.P), d.pl], [s.pct.toFixed(2) + '%', d.pctl || 'Completion %']];
         d.cols.filter(x => x.money).forEach(x => cards.push([fmtMoneyPdf(sec.totals[x.k]), x.l]));
@@ -2546,7 +2659,7 @@ async function exportPortal(p, kind, g, snap) {
     } else {
       needLib('XLSX'); const wb = XLSX.utils.book_new();
       p.sections.forEach(d => {
-        const sec = snap.sections[d.id]; if (!sec) return; const s = snap.summary[d.id];
+        const sec = snap.sections[d.id]; if (!sec) return; const s = summarize(p, snap.sections)[d.id];
         const pc = portalCols(d);
         const aoa = [[`${p.short} — ${d.label} — Station-wise Report`], [`${ORG} • Data as on ${dmy(snap.date)}`], [],
         ['S.No', 'Police Station'].concat(pc.map(c => c.l)).concat([d.pctl || '% Completion'])];
@@ -2560,6 +2673,101 @@ async function exportPortal(p, kind, g, snap) {
       saveXlsx(wb, base + '.xlsx');
     }
   }
+}
+/* Sahayog — "Station-wise Performance Report" layout */
+function exportSahayogPdf(p, snap, g) {
+  const doc = newPdf(g.pdfPass), W = 210, H = 297, M = 14;
+  const sec = snap.sections.main, t = sec.totals, m = snap.meta || {};
+  const city = m.city || 'Ernakulam City', from = m.from || '', to = m.to || dmy(snap.date);
+  const period = from ? `${from} to ${to}` : `as on ${dmy(snap.date)}`;
+  const NV = [15, 33, 56], GD = [184, 146, 60], CR = [248, 246, 240], BG = [238, 231, 215], GR = [46, 125, 80], RD = [165, 52, 40], AM = [176, 122, 20];
+  const bg = () => { doc.setFillColor(...CR); doc.rect(0, 0, W, H, 'F'); };
+  const pct = (a, b) => b ? (a * 100 / b).toFixed(1) + '%' : '0%';
+  bg();
+  doc.setFillColor(...NV); doc.rect(0, 0, W, 36, 'F'); doc.setFillColor(...GD); doc.rect(0, 36, W, 1.2, 'F');
+  doc.setFont('times', 'bold'); doc.setFontSize(9); doc.setTextColor(222, 198, 130); doc.text('SAHAYOG PORTAL', M, 10.5, { charSpace: 0.6 });
+  doc.setFontSize(21); doc.setTextColor(255, 255, 255); doc.text('Station-wise Performance Report', M, 21.5);
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.text(`${city}  ·  ${period}`, M, 30);
+  let y = 37.2;
+  doc.setFillColor(255, 255, 255); doc.rect(0, y, W, 24, 'F'); doc.setDrawColor(215, 208, 192); doc.setLineWidth(0.25);
+  [[t.total, 'TOTAL URLS', NV], [t.removed, 'REMOVED / DISABLED', GR], [t.unable, 'UNABLE TO COMPLY', RD], [t.pending, 'PENDING REQUESTS', AM]].forEach((k, i) => {
+    const x = i * W / 4; if (i) doc.line(x, y, x, y + 24);
+    doc.setFont('times', 'bold'); doc.setFontSize(21); doc.setTextColor(...k[2]); doc.text(fmtN(k[0]), x + W / 8, y + 12.5, { align: 'center' });
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(7); doc.setTextColor(55, 62, 72); doc.text(k[1], x + W / 8, y + 19, { align: 'center' });
+  });
+  doc.line(0, y + 24, W, y + 24); y += 34;
+  const need = h => { if (y + h > H - 20) { doc.addPage(); bg(); y = 18; } };
+  const heading = txt => { need(16); doc.setFont('times', 'bold'); doc.setFontSize(14); doc.setTextColor(...NV); doc.text(txt, M, y); doc.setDrawColor(...GD); doc.setLineWidth(0.6); doc.line(M, y + 2.4, W - M, y + 2.4); doc.setLineWidth(0.25); y += 9.5; };
+  const para = (txt, size = 9.6, lh = 5.1) => { doc.setFont('helvetica', 'normal'); doc.setFontSize(size); doc.setTextColor(30, 34, 42); const L = doc.splitTextToSize(txt, W - 2 * M); need(L.length * lh); doc.text(L, M, y); y += L.length * lh + 2; };
+
+  heading('Portal Summary');
+  para(`${from ? `During the period ${period}` : `As on ${dmy(snap.date)}`}, ${fmtN(t.total)} URLs were reported through the Sahayog portal for ${city}. Of these, ${fmtN(t.removed)} were removed or disabled, ${fmtN(t.unable)} were recorded as unable to comply, ${fmtN(t.addl)} required additional information, and ${fmtN(t.pending)} requests remained pending.`);
+  y += 3;
+  const all = sec.stations, active = all.filter(x => num(x.v.total) > 0).sort((a, b) => num(b.v.total) - num(a.v.total) || a.name.localeCompare(b.name)), idle = all.filter(x => !num(x.v.total));
+  heading('Station-wise Sahayog Portal Report');
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(7.6); doc.setTextColor(60, 64, 72);
+  const note = doc.splitTextToSize(`Showing the ${active.length} station(s) that raised requests during the period. Stations with zero activity are listed under "Portal Usage Across Stations" below.`, W - 2 * M); doc.text(note, M, y); y += note.length * 3.6 + 1.5;
+  const body = active.map((x, i) => [i + 1, x.name, fmtN(x.v.total), fmtN(x.v.removed), fmtN(x.v.unable), fmtN(x.v.addl), fmtN(x.v.pending)]);
+  body.push([{ content: 'TOTAL', colSpan: 2 }, fmtN(t.total), fmtN(t.removed), fmtN(t.unable), fmtN(t.addl), fmtN(t.pending)]);
+  const startPage = doc.internal.getNumberOfPages();
+  doc.autoTable({
+    startY: y, margin: { left: M, right: M, top: 16, bottom: 20 }, theme: 'plain',
+    head: [['S.No', 'Requesting Police Station', 'Total URLs', 'Removed / Disabled', 'Unable to Comply', 'Addl. Info Req.', 'Pending']], body,
+    styles: { font: 'helvetica', fontSize: 8.2, cellPadding: { top: 2.1, bottom: 2.1, left: 2.2, right: 2.2 }, textColor: [25, 30, 38], lineColor: [255, 255, 255], lineWidth: 0.3 },
+    headStyles: { fillColor: NV, textColor: 255, fontStyle: 'bold', fontSize: 7.6, halign: 'right' },
+    bodyStyles: { fillColor: [250, 248, 243] }, alternateRowStyles: { fillColor: BG },
+    columnStyles: { 0: { halign: 'left', cellWidth: 13 }, 1: { halign: 'left', fontStyle: 'bold', cellWidth: 60 }, 2: { halign: 'right' }, 3: { halign: 'right' }, 4: { halign: 'right' }, 5: { halign: 'right' }, 6: { halign: 'right' } },
+    willDrawPage: () => { if (doc.internal.getNumberOfPages() > startPage) bg(); },
+    didParseCell: d => {
+      if (d.section === 'head' && d.column.index < 2) d.cell.styles.halign = 'left';
+      if (d.section === 'body' && d.row.index === body.length - 1) { d.cell.styles.fillColor = NV; d.cell.styles.textColor = 255; d.cell.styles.fontStyle = 'bold'; }
+    }
+  });
+  y = doc.lastAutoTable.finalY + 12;
+
+  const N = all.length, bw = (W - 2 * M - 6) / 2, pad = 4.5;
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(7.8);
+  const chips = []; let cx = 0, cy = 0; const cw = bw - 2 * pad;
+  active.forEach(x => { const w = doc.getTextWidth(pdfTxt(x.name)) + 7; if (cx && cx + w > cw) { cx = 0; cy += 8; } chips.push({ x: cx, y: cy, w, name: x.name }); cx += w + 2.5; });
+  const rowsL = Math.ceil(idle.length / 2);
+  const hL = 17 + Math.max(1, rowsL) * 5.4 + 3, hR = 17 + (active.length ? cy + 8 : 6) + 3, bh = Math.max(hL, hR, 30);
+  need(bh + 14); heading('Portal Usage Across Stations');
+  const boxAt = (x, title, sub) => {
+    doc.setFillColor(255, 255, 255); doc.setDrawColor(214, 205, 186); doc.roundedRect(x, y, bw, bh, 2.2, 2.2, 'FD');
+    doc.setFont('times', 'bold'); doc.setFontSize(10.8); doc.setTextColor(...NV); doc.text(title, x + pad, y + 7);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(7.4); doc.setTextColor(70, 74, 82); doc.text(doc.splitTextToSize(sub, bw - 2 * pad), x + pad, y + 11.5);
+  };
+  boxAt(M, `Stations Not Using the Portal (${idle.length} of ${N})`, 'These stations recorded zero URLs during the reporting period.');
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(8.4); doc.setTextColor(30, 34, 42);
+  if (!idle.length) doc.text('None — every station recorded activity.', M + pad, y + 19);
+  idle.forEach((x, i) => { const col = i < rowsL ? 0 : 1, r = i < rowsL ? i : i - rowsL; doc.text(`${i + 1}. ${x.name}`, M + pad + 2 + col * (bw / 2 - 2), y + 19 + r * 5.4); });
+  const rx = M + bw + 6;
+  boxAt(rx, `Stations with Recorded Usage (${active.length} of ${N})`, 'At least one URL was recorded through the portal.');
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(7.8);
+  chips.forEach(c => { doc.setFillColor(223, 234, 214); doc.setDrawColor(150, 178, 132); doc.roundedRect(rx + pad + c.x, y + 15 + c.y, c.w, 6.2, 3, 3, 'FD'); doc.setTextColor(28, 62, 34); doc.text(c.name, rx + pad + c.x + 3.5, y + 19.3 + c.y); });
+  y += bh + 10;
+
+  heading('Key Findings');
+  const bullets = [];
+  if (active.length && t.total) { const tp = active[0]; bullets.push(`${tp.name} accounts for ${fmtN(tp.v.total)} of the ${fmtN(t.total)} URLs (${pct(num(tp.v.total), t.total)}) recorded in the reporting period.`); }
+  if (active.length > 1) { const rest = active.slice(1).map(x => `${x.name} ${fmtN(x.v.total)}`); bullets.push(`${rest.length > 1 ? rest.slice(0, -1).join(', ') + ' and ' + rest[rest.length - 1] : rest[0]} ${rest.length > 1 ? 'were the remaining stations' : 'was the only other station'} with recorded activity.`); }
+  bullets.push(`${fmtN(t.removed)} of ${fmtN(t.total)} URLs (${pct(t.removed, t.total)}) were reported as removed or disabled.`);
+  bullets.push(`${fmtN(t.unable)} URLs were marked unable to comply, ${fmtN(t.addl)} required additional information, and ${fmtN(t.pending)} remained pending.`);
+  if (idle.length) bullets.push(`${idle.length} listed station${idle.length > 1 ? 's have' : ' has'} zero recorded URLs and should be reviewed to confirm whether the portal is not being used or whether no qualifying requests arose during the period.`);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(9.2); doc.setTextColor(30, 34, 42);
+  bullets.forEach(b => { const L = doc.splitTextToSize(b, W - 2 * M - 6); need(L.length * 4.9 + 1.5); doc.setFillColor(...NV); doc.circle(M + 1.6, y - 1.3, 0.7, 'F'); doc.text(L, M + 5, y); y += L.length * 4.9 + 1.6; });
+
+  const n = doc.internal.getNumberOfPages(), gen = nowStamp();
+  for (let i = 1; i <= n; i++) {
+    doc.setPage(i);
+    if (Prefs.p.watermark && !doc.__encrypted) { try { doc.saveGraphicsState(); doc.setGState(new doc.GState({ opacity: 0.06 })); doc.setFont('helvetica', 'bold'); doc.setFontSize(54); doc.setTextColor(20, 40, 70); doc.text('CONFIDENTIAL', W / 2 - 62, H / 2 + 38, { angle: 35 }); doc.restoreGraphicsState(); } catch (e) { } }
+    doc.setDrawColor(214, 205, 186); doc.setLineWidth(0.3); doc.line(M, H - 15, W - M, H - 15);
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(7.6); doc.setTextColor(...NV);
+    doc.text(`${city} — Sahayog Portal Report`, M, H - 10); doc.text(`Period: ${period}`, W / 2, H - 10, { align: 'center' }); doc.text(`Generated on ${gen}`, W - M, H - 10, { align: 'right' });
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(6.8); doc.setTextColor(130, 130, 130); doc.text(`${ORG}  ·  Confidential  ·  Page ${i} of ${n}`, W / 2, H - 6, { align: 'center' });
+  }
+  const safe = x => String(x).replace(/[^\w-]+/g, '_');
+  savePdf(doc, `Sahayog_Report_${safe(city)}_${from ? safe(from) + '_to_' : ''}${safe(to)}.pdf`);
 }
 function sheetName(n, used) { let s = String(n).replace(/[\\\/\?\*\[\]:]/g, ' ').slice(0, 31); if (used) { let i = 2; const b = s.slice(0, 28); while (used.has(s)) s = b + ' ' + (i++); used.add(s); } return s; }
 
