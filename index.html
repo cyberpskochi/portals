@@ -487,7 +487,7 @@ input.masked{-webkit-text-security:disc}
     </section>
   </main>
 
-  <footer class="credit-bar">© ARUN R <span style="opacity:.5;font-size:.8em;margin-left:8px">v2.4</span></footer>
+  <footer class="credit-bar">© ARUN R <span style="opacity:.5;font-size:.8em;margin-left:8px">v2.7</span></footer>
 </div>
 
 <div id="modal" class="modal hidden" role="dialog" aria-modal="true"></div>
@@ -662,7 +662,7 @@ function cfg() {
 const Prefs = {
   p: null,
   defaults() { return { idle: 10, watermark: true, mrmMap: {}, grm: { pendingRoles: 'IO, District GRO', bankRoles: 'Bank' }, sahayog: { city: 'Ernakulam City', from: '01-01-2026' }, clientId: '', backend: '' }; },
-  load() { let x = {}; try { x = JSON.parse(localStorage.getItem('cps_prefs') || '{}'); } catch (e) { } const d = this.defaults(); this.p = Object.assign(d, x, { grm: Object.assign(d.grm, x.grm || {}), sahayog: Object.assign(d.sahayog, x.sahayog || {}), mrmMap: Object.assign({}, x.mrmMap || {}) }); },
+  load() { let x = {}; try { x = JSON.parse(localStorage.getItem('cps_prefs') || '{}'); } catch (e) { } const d = this.defaults(); this.p = Object.assign(d, x, { grm: Object.assign(d.grm, x.grm || {}), sahayog: Object.assign(d.sahayog, x.sahayog || {}), mrmMap: Object.assign({}, x.mrmMap || {}), grmMap: Object.assign({}, x.grmMap || {}) }); },
   save() { try { localStorage.setItem('cps_prefs', JSON.stringify(this.p)); } catch (e) { } }
 };
 Prefs.load();
@@ -1025,17 +1025,52 @@ function parseExcelDate(val) {
   if (m) return new Date(+m[1], +m[2] - 1, +m[3]);
   return null;
 }
+// GRM exports can carry title lines above the column headings and more than one sheet.
+// Pick the sheet whose heading row has a station column and a "currently at"/status column;
+// if several do, take the one with the most rows.
+function grmPickSheet(wb, fname) {
+  let best = null;
+  for (const sn of wb.SheetNames) {
+    const ws = wb.Sheets[sn]; if (!ws || !ws['!ref']) continue;
+    const aoa = sheetAOA(ws); if (!aoa.length) continue;
+    let hi = 0, score = 0;
+    for (let i = 0; i < Math.min(aoa.length, 25); i++) {
+      const cells = (aoa[i] || []).map(v => String(v ?? '').toLowerCase());
+      const sc = (cells.some(c => c.includes('station')) ? 2 : 0) + (cells.some(c => c.includes('currently') || c.includes('status')) ? 2 : 0) + (cells.some(c => c.includes('acknowledg') || c.includes('ack')) ? 1 : 0);
+      const v = sc ? sc * 100 + cells.filter(c => c.trim()).length : 0; // tie → the fuller row is the heading, not a title line
+      if (v > score) { score = v; hi = i; }
+    }
+    const used = {}, hdr = (aoa[hi] || []).map((v, i) => { let h = String(v ?? '').trim() || '__EMPTY_' + i; if (used[h]) h = h + '_' + used[h]++; else used[h] = 1; return h; });
+    const rows = aoa.slice(hi + 1).filter(r => r.some(v => String(v ?? '').trim() !== '')).map(r => { const o = {}; hdr.forEach((h, i) => { o[h] = r[i] ?? ''; }); return o; });
+    const headers = hdr.filter(h => !h.startsWith('__EMPTY_'));
+    const cand = { sheet: sn, rows, headers, score };
+    if (!best || cand.score > best.score || (cand.score === best.score && rows.length > best.rows.length)) best = cand;
+  }
+  if (!best || !best.rows.length) throw new Error(`No data rows found in ${fname}.`);
+  return best;
+}
+function grmClassify(r, pend, bank, map) {
+  if (map && map[r]) return { c: map[r], how: 'set by you' };
+  if (!r) return { c: 'closed', how: 'blank' };
+  const starts = list => list.some(k => r === k || new RegExp('^' + k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b').test(r));
+  if (starts(pend)) return { c: 'pending', how: 'pending list' };
+  if (starts(bank)) return { c: 'bank', how: 'bank list' };
+  if (/\b(closed?|resolved|disposed|completed?|rejected|withdrawn|settled|refunded)\b/.test(r)) return { c: 'closed', how: 'auto' };
+  if (/\bbank\b/.test(r)) return { c: 'bank', how: 'auto' };
+  if (/\b(io|gro|sho|ps|police|pending|investigating|open|in progress|under process|assigned)\b/.test(r)) return { c: 'pending', how: 'auto' };
+  return { c: 'closed', how: 'not recognised' };
+}
 function parseGRM(rows, o) {
   const pend = String(o.pendingRoles || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
   const bank = String(o.bankRoles || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
-  const role = v => { const s = String(v ?? '').trim(); if (!s) return ''; const i = s.indexOf(','); return (i < 0 ? s : s.slice(0, i)).trim().toLowerCase(); };
-  const cls = r => !r ? 'closed' : pend.includes(r) ? 'pending' : bank.includes(r) ? 'bank' : 'closed';
+  const map = Prefs.p.grmMap || {};
+  const role = v => { const s = String(v ?? '').replace(/\s+/g, ' ').trim(); if (!s) return ''; const i = s.search(/[,:(\-–]/); return (i <= 0 ? s : s.slice(0, i)).trim().toLowerCase(); };
   const by = {}; const roles = {};
   rows.forEach(r => {
     const name = String(r[o.groupCol] ?? '').trim() || '(blank)';
     const b = by[name] || (by[name] = { total: 0, pending: 0, bank: 0, closed: 0 });
-    const rl = role(r[o.statusCol]); const c = cls(rl);
-    roles[rl || '(blank)'] = roles[rl || '(blank)'] || { n: 0, c }; roles[rl || '(blank)'].n++;
+    const rl = role(r[o.statusCol]); const k = grmClassify(rl, pend, bank, map); const c = k.c;
+    const rk = rl || '(blank)'; roles[rk] = roles[rk] || { n: 0, c, how: k.how, ex: String(r[o.statusCol] ?? '').trim().slice(0, 60) }; roles[rk].n++;
     b.total++; b[c]++;
   });
   const stations = Object.keys(by).map(n => ({ name: n, v: by[n] })).sort((a, b) => (b.v.pending / (b.v.total || 1)) - (a.v.pending / (a.v.total || 1)) || b.v.total - a.v.total);
@@ -1140,7 +1175,25 @@ function parseSahayogLines(lines) {
   lines.forEach(l => { const m = l.match(re); if (m && !isTotalName(m[2])) out.push([m[2].trim(), +m[3], +m[4], +m[5], +m[6], +m[7]]); });
   return { mode: 'PDF report', rows: out };
 }
-function sahKey(n) { return String(n).toLowerCase().replace(/police\s*station|\bps\b/g, '').replace(/[^a-z]/g, ''); }
+// Station name → comparison key. Spelling variants are folded together
+// (Cheranalloor/Cheranallur, Thoppumpady/Thoppumpadi, Elamakkara/Elamakara …).
+function sahKey(n) {
+  let k = String(n).toLowerCase().replace(/police\s*station|\bps\b|\bp\.s\.?/g, '').replace(/[^a-z]/g, '');
+  k = k.replace(/oo/g, 'u').replace(/ee/g, 'i').replace(/y$/, 'i').replace(/(.)\1+/g, '$1');
+  return SAH_ALIAS[k] || k;
+}
+// Other names the portal uses for the same station → the master-list name's key
+const SAH_ALIAS = (() => {
+  const raw = {
+    'ET North': ['Ernakulam Town North', 'Ernakulam North', 'Town North', 'E T North', 'ETN', 'Ernakulam Town (North)'],
+    'ET South': ['Ernakulam Town South', 'Ernakulam South', 'Town South', 'E T South', 'ETS', 'Ernakulam Town (South)'],
+    'Hillpalace': ['Hill Palace'], 'Fortkochi': ['Fort Kochi'], 'Cybercrime PS': ['Cyber Crime', 'Cyber'],
+    'Infopark': ['Info Park'], 'Harbour PS': ['Kochi Harbour', 'Harbour'], 'Coastal PS': ['Kochi Coastal', 'Coastal'],
+    'Vanitha': ['Vanitha Cell', 'Women Cell'], 'Central PS': ['Ernakulam Central', 'Central']
+  };
+  const base = n => { let k = String(n).toLowerCase().replace(/police\s*station|\bps\b|\bp\.s\.?/g, '').replace(/[^a-z]/g, ''); return k.replace(/oo/g, 'u').replace(/ee/g, 'i').replace(/y$/, 'i').replace(/(.)\1+/g, '$1'); };
+  const m = {}; Object.keys(raw).forEach(master => raw[master].forEach(a => { const k = base(a); if (k !== base(master)) m[k] = base(master); })); return m;
+})();
 function sahayogMerge(rows) {
   const list = SAHAYOG_MASTER.map(n => ({ name: n, v: { total: 0, removed: 0, unable: 0, addl: 0, pending: 0 } }));
   const match = name => { const k = sahKey(name); if (!k) return null; let hit = list.find(s => sahKey(s.name) === k); if (hit) return hit; hit = list.find(s => { const m = sahKey(s.name); return m.length >= 5 && k.length >= 5 && (k.includes(m) || m.includes(k)); }); return hit || null; };
@@ -1181,8 +1234,21 @@ const PORTALS = [
     id: 'GRM', full: 'Grievance Redressal Module', tag: 'Grievances pending with IO / GRO, sent to bank and closed', color: '#ffb300', icon: 'bank',
     accept: '.xlsx,.xls', multi: true, hint: 'GRM grievance-detail export(s) — one row per grievance with Police Station and "Currently at" columns (District GRO dashboard → NCRP Acknowledgement Nos. → Excel).',
     sections: [{ id: 'main', label: 'GRM Grievances', cols: [{ k: 'total', l: 'Total Request' }, { k: 'pending', l: 'Pending (IO / GRO)' }, { k: 'bank', l: 'Sent to Bank' }, { k: 'closed', l: 'Closed' }], R: 'total', C: ['bank', 'closed'], P: ['pending'], tiers: [90, 70], rl: 'Total requests', cl: 'Completed (bank + closed)', pl: 'Pending with police' }],
-    async load(files) { const rows = []; const headers = []; for (const f of files) { const wb = await readWorkbook(f); const r = sheetRows(wb.Sheets[wb.SheetNames[0]]); r.forEach(x => rows.push(x)); if (r[0]) Object.keys(r[0]).forEach(h => { if (!headers.includes(h)) headers.push(h); }); } return { rows, headers }; },
-    build(c, o) { const r = parseGRM(c.rows, o); Prefs.p.grm = { pendingRoles: o.pendingRoles, bankRoles: o.bankRoles }; Prefs.save(); return { sections: { main: r.stations }, extras: { roles: r.roles }, meta: { groupCol: o.groupCol, statusCol: o.statusCol } }; }
+    async load(files) {
+      const rows = [], headers = [], perFile = [], seen = new Set(); let dup = 0;
+      for (const f of files) {
+        const wb = await readWorkbook(f); const g = grmPickSheet(wb, f.name); let n = 0;
+        g.rows.forEach(x => { const k = JSON.stringify(x); if (seen.has(k)) { dup++; return; } seen.add(k); rows.push(x); n++; });
+        g.headers.forEach(h => { if (!headers.includes(h)) headers.push(h); });
+        perFile.push({ name: f.name, sheet: g.sheet, rows: g.rows.length, used: n });
+      }
+      if (!rows.length) throw new Error('No grievance rows found in the uploaded GRM file(s).');
+      return { rows, headers, perFile, dup };
+    },
+    build(c, o) {
+      const r = parseGRM(c.rows, o); Prefs.p.grm = { pendingRoles: o.pendingRoles, bankRoles: o.bankRoles }; Prefs.save();
+      return { sections: { main: r.stations }, extras: { roles: r.roles }, meta: { groupCol: o.groupCol, statusCol: o.statusCol, rows: c.rows.length, fileInfo: (c.perFile || []).map(x => `${x.name} [${x.sheet}]: ${x.rows} rows`).join('; '), dup: c.dup || 0 } };
+    }
   },
   {
     id: 'CEIR', full: 'Central Equipment Identity Register', tag: 'Lost / stolen mobiles — block requests, traceability and recovery', color: '#b388ff', icon: 'phone',
@@ -1900,7 +1966,7 @@ function optsHTML(p) {
     <label class="f">Status column<select data-o="statusCol"><option value="">(load file)</option></select></label>
     <label class="f">"Pending" roles<input type="text" data-o="pendingRoles"></label>
     <label class="f">"Sent to bank" roles<input type="text" data-o="bankRoles"></label>
-    <p class="tiny muted full" style="margin:0">Only the text before the first comma of the status is matched ("IO" in "IO, PS : Thrikkakara"). Any other role — including blank — counts as Closed.</p>`;
+    <p class="tiny muted full" style="margin:0">The text before the first comma of the status is matched ("IO" in "IO, PS : Thrikkakara"). Roles that are not in the lists are sorted automatically; check the <b>Status roles found</b> table below the upload and correct any line.</p>`;
   if (p.id === 'MRM') return `<label class="f full">Jurisdiction / heading (for PDF report)<input type="text" data-o="jurisdiction" placeholder="e.g. Kochi City Police Jurisdiction"></label>
     <div class="full glass" style="padding:12px 14px;border-color:rgba(41,121,255,.45)"><b class="tiny" style="letter-spacing:.12em;color:var(--blue)">STEP 1B · MANUAL DATA (OPTIONAL)</b>
       <p class="tiny muted" style="margin:6px 0 10px">Victims Contacted, Victims Pending, Bank Contacted and Bank Pending. Process the raw file first, download the template (station names pre-filled), fill the 4 columns and upload it back. If not uploaded, these columns stay 0.</p>
@@ -1981,15 +2047,21 @@ function addFiles(p, list) {
   const st = PS[p.id]; const arr = Array.from(list);
   const ok = arr.filter(f => p.accept.split(',').some(ext => f.name.toLowerCase().endsWith(ext.trim())));
   if (!ok.length) { setMsg(p, 'Unsupported file type. Accepted: ' + p.accept, 'err'); return; }
-  st.files = p.multi ? st.files.concat(ok.filter(f => !st.files.some(x => x.name === f.name && x.size === f.size))) : [ok[0]];
+  // Once data has been processed (or a backed-up record is open), a new upload REPLACES the earlier
+  // files instead of being added to them — otherwise the old file keeps being counted and the
+  // result looks the same for every upload. To combine files, select them together.
+  const fresh = !p.multi || !!st.cacheSig || !!st.viewingId;
+  const had = st.files.length;
+  st.files = fresh ? (p.multi ? ok : [ok[0]]) : st.files.concat(ok.filter(f => !st.files.some(x => x.name === f.name && x.size === f.size && x.lastModified === f.lastModified)));
+  if (fresh) { st.cache = null; st.cacheSig = ''; st.current = null; st.viewingId = null; $('#res-' + p.id).innerHTML = ''; $('#extra-' + p.id).innerHTML = ''; renderHistory(p.id); }
   const dateI = $('#date-' + p.id);
   if (!dateI.dataset.touched) { const g = st.files.map(f => dateFromName(f.name)).filter(Boolean).sort().pop(); dateI.value = g || isoToday(); }
-  renderFiles(p); setMsg(p, `${st.files.length} file(s) ready — press PROCESS DATA.`, 'info');
+  renderFiles(p); setMsg(p, `${st.files.length} file(s) ready${fresh && had && p.multi ? ' (earlier files cleared — select several files together to combine them)' : ''} — press PROCESS DATA.`, 'info');
 }
 function renderFiles(p) {
   const st = PS[p.id];
   $('#files-' + p.id).innerHTML = st.files.map((f, i) => `<div class="file"><span>📄</span><b title="${esc(f.name)}">${esc(f.name)}</b><span class="tiny muted">${(f.size / 1024).toFixed(1)} KB</span><button class="x" data-i="${i}" title="Remove">✕</button></div>`).join('');
-  $$('.x', $('#files-' + p.id)).forEach(b => b.onclick = () => { st.files.splice(+b.dataset.i, 1); renderFiles(p); });
+  $$('.x', $('#files-' + p.id)).forEach(b => b.onclick = () => { st.files.splice(+b.dataset.i, 1); st.cache = null; st.cacheSig = ''; renderFiles(p); });
   $('#proc-' + p.id).disabled = !st.files.length;
 }
 function makeSnapshot(p, built, date) {
@@ -2024,7 +2096,7 @@ function fillGRMCols(headers) {
   const fill = (s, opts, val, none) => { s.innerHTML = (none ? '<option value="">(none)</option>' : '') + opts.map(h => `<option>${esc(h)}</option>`).join(''); s.value = val; };
   const prev = { g: sel('groupCol').value, s: sel('statusCol').value };
   fill(sel('groupCol'), headers, headers.includes(prev.g) ? prev.g : guessCol(headers, ['police station', 'station']));
-  fill(sel('statusCol'), headers, headers.includes(prev.s) ? prev.s : guessCol(headers, ['currently at', 'status']));
+  fill(sel('statusCol'), headers, headers.includes(prev.s) ? prev.s : (headers.find(h => /currently/i.test(h)) || headers.find(h => /pending\s*(with|at)/i.test(h)) || guessCol(headers, ['currently at', 'current status', 'status'])));
   $$('select,input', box).forEach(el => { el.onchange = () => { if (PS.GRM.cache) { try { rebuild(P_BY.GRM); } catch (e) { setMsg(P_BY.GRM, e.message, 'err'); } } }; });
 }
 function renderExtras(p) {
@@ -2037,7 +2109,12 @@ function renderExtras(p) {
     $$('select[data-st]', box).forEach(s => s.onchange = () => { Prefs.p.mrmMap[s.dataset.st] = s.value; Prefs.save(); rebuild(p); });
   } else if (p.id === 'GRM') {
     const r = ex.roles; const ks = Object.keys(r).sort((a, b) => r[b].n - r[a].n);
-    box.innerHTML = `<div class="glass card corner" style="--pc:${p.color};margin-bottom:18px"><h3>Status roles found</h3><div class="hist">${ks.map(k => `<span class="hchip" style="--pc:${r[k].c === 'pending' ? 'var(--amber)' : r[k].c === 'bank' ? 'var(--blue)' : 'var(--green)'}">${esc(k)} <small>${r[k].n} → ${r[k].c}</small></span>`).join('')}</div><p class="tiny muted" style="margin:10px 0 0">Check that nothing is falling into Closed by mistake; adjust the role lists above if needed.</p></div>`;
+    const tot = ks.reduce((t, k) => t + r[k].n, 0), pn = ks.filter(k => r[k].c === 'pending').reduce((t, k) => t + r[k].n, 0);
+    const col = c => c === 'pending' ? 'var(--amber)' : c === 'bank' ? 'var(--blue)' : 'var(--green)';
+    const warn = !pn ? `<div class="warnbox" style="margin-bottom:10px">No grievance is counted as <b>Pending</b>, so every station shows 100%. Check that <b>Status column</b> above is the "Currently at" column, and set the correct category for the roles below.</div>` : '';
+    box.innerHTML = `<div class="glass card corner" style="--pc:${p.color};margin-bottom:18px"><h3>Status roles found</h3>${warn}<p class="tiny muted" style="margin-top:0">Column used: <b>${esc(st.current.meta.statusCol || '')}</b> · ${fmtN(pn)} of ${fmtN(tot)} counted as pending. Change any line that is wrong — your choice is remembered on this computer for future uploads.</p>
+      <div class="tw" style="max-height:320px"><table class="dt"><thead><tr><th class="l">Role (text before first comma)</th><th class="l">Example value</th><th>Rows</th><th class="l">Counted as</th><th class="l">Rule</th></tr></thead><tbody>${ks.map(k => `<tr><td class="l">${esc(k)}</td><td class="l tiny muted">${esc(r[k].ex || '')}</td><td>${fmtN(r[k].n)}</td><td class="l"><select data-grm="${esc(k)}" style="color:${col(r[k].c)}">${['pending', 'bank', 'closed'].map(c => `<option value="${c}"${r[k].c === c ? ' selected' : ''}>${{ pending: 'Pending (IO / GRO)', bank: 'Sent to Bank', closed: 'Closed' }[c]}</option>`).join('')}</select></td><td class="l tiny ${r[k].how === 'not recognised' ? '' : 'muted'}" style="${r[k].how === 'not recognised' ? 'color:var(--red)' : ''}">${esc(r[k].how || '')}</td></tr>`).join('')}</tbody></table></div></div>`;
+    $$('select[data-grm]', box).forEach(sl => sl.onchange = () => { const k = sl.dataset.grm === '(blank)' ? '' : sl.dataset.grm; Prefs.p.grmMap = Prefs.p.grmMap || {}; Prefs.p.grmMap[k] = sl.value; Prefs.save(); if (PS.GRM.cache) rebuild(p); });
   } else box.innerHTML = '';
 }
 function renderResult(pid) {
@@ -2047,7 +2124,7 @@ function renderResult(pid) {
   const saved = !!st.viewingId;
   let h = resBarHTML(p, st, snap);
   const m = snap.meta || {};
-  const info = [snap.files && snap.files.length ? 'Source: ' + snap.files.join(', ') : '', m.mode ? 'Format: ' + m.mode : '', m.rows ? m.rows + ' raw rows' : '', m.unique ? m.unique + ' unique complaints' : '', m.from ? `Period ${m.from} to ${m.to}` : '', saved ? 'Backed up ' + new Date(snap.savedAt).toLocaleString('en-IN') + (snap.savedBy ? ' by ' + snap.savedBy : '') : ''].filter(Boolean).join(' · ');
+  const info = [snap.files && snap.files.length ? 'Source: ' + snap.files.join(', ') : '', m.mode ? 'Format: ' + m.mode : '', m.rows ? m.rows + ' raw rows' : '', m.fileInfo ? 'Read: ' + m.fileInfo : '', m.dup ? m.dup + ' duplicate rows (same grievance in more than one file) skipped' : '', m.unique ? m.unique + ' unique complaints' : '', m.from ? `Period ${m.from} to ${m.to}` : '', saved ? 'Backed up ' + new Date(snap.savedAt).toLocaleString('en-IN') + (snap.savedBy ? ' by ' + snap.savedBy : '') : ''].filter(Boolean).join(' · ');
   if (info) h += `<p class="tiny muted mono" style="margin:-6px 0 14px">${esc(info)}</p>`;
   p.sections.forEach(d => {
     const sec = snap.sections[d.id];
