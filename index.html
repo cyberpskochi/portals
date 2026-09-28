@@ -540,7 +540,7 @@ input.masked{-webkit-text-security:disc}
     </section>
   </main>
 
-  <footer class="credit-bar">© ARUN R <span style="opacity:.5;font-size:.8em;margin-left:8px">v3.0</span></footer>
+  <footer class="credit-bar">© ARUN R <span style="opacity:.5;font-size:.8em;margin-left:8px">v3.1</span></footer>
 </div>
 
 <div id="modal" class="modal hidden" role="dialog" aria-modal="true"></div>
@@ -917,16 +917,19 @@ function parseNCRP(aoa) {
 const MRM_CATS = ['Victim Requests Remains', 'Pending at Stations', 'Order Refer Back', 'Pending at Bank', 'Restoration not Complied', 'Restoration Completed', 'Already Refunded'];
 const MRM_CATKEY = { 'Victim Requests Remains': 'vrr', 'Pending at Stations': 'pas', 'Order Refer Back': 'orb', 'Pending at Bank': 'pab', 'Restoration not Complied': 'rnc', 'Restoration Completed': 'rc', 'Already Refunded': 'ar' };
 function mrmGuess(statusRaw) {
-  const s = String(statusRaw || '').toLowerCase();
-  if (s.includes('pending at lea')) return 'Pending at Stations';
-  if (s.includes('station') && s.includes('pending')) return 'Pending at Stations';
+  const s = String(statusRaw || '').toLowerCase().replace(/\s+/g, ' ').trim();
+  if (!s || s === '(blank)') return 'Victim Requests Remains';
   if (s.includes('refer back') || s.includes('referback') || s.includes('refer-back')) return 'Order Refer Back';
+  if (s.includes('pending at lea') || /\blea\b/.test(s) && s.includes('pending')) return 'Pending at Stations';
+  // anything still waiting on the victim (request remains / awaiting victim / pending with victim / incomplete request)
+  if (/victim|request(s)? remain|remains? with|awaiting|incomplete|not submitted|yet to (submit|apply|raise)/.test(s)) return 'Victim Requests Remains';
+  if (s.includes('station') && s.includes('pending')) return 'Pending at Stations';
   if (s.includes('pending at bank') || (s.includes('bank') && s.includes('pending'))) return 'Pending at Bank';
   if (s.includes('sent to bank') || s.includes('send to bank')) return 'Pending at Bank';
-  if (s.includes('not complied') || s.includes('not complete') || s.includes('non complied') || s.includes('non-complied')) return 'Restoration not Complied';
-  if (s.includes('complet') || s.includes('restored') || s.includes('restoration done')) return 'Restoration Completed';
+  if (/not compl|non[ -]?compl/.test(s)) return 'Restoration not Complied';
+  if (/\bcompleted?\b|\brestored\b|restoration done/.test(s)) return 'Restoration Completed';
   if (s.includes('refund')) return 'Already Refunded';
-  if (s.includes('close')) return 'Restoration Completed';
+  if (/\bclosed?\b/.test(s)) return 'Restoration Completed';
   return 'Victim Requests Remains';
 }
 const MRM_ACK_CANDS = ['Acknowledgement Number', 'Acknowledgement No', 'Acknowledgement No.', 'Acknowledgement Num', 'Acknowledgement', 'Ack Number', 'Ack No', 'Ack No.', 'Ack Num', 'Acknowledgment Number', 'Acknowledgment No', 'Acknowledgment No.', 'Acknowledgment'];
@@ -2114,20 +2117,28 @@ function wirePortal(p) {
   });
 }
 function setMsg(p, t, k = 'info') { const m = $('#msg-' + p.id); m.textContent = t; m.className = 'msg ' + k; }
-function addFiles(p, list) {
+async function addFiles(p, list) {
   const st = PS[p.id]; const arr = Array.from(list);
   const ok = arr.filter(f => p.accept.split(',').some(ext => f.name.toLowerCase().endsWith(ext.trim())));
   if (!ok.length) { setMsg(p, 'Unsupported file type. Accepted: ' + p.accept, 'err'); return; }
-  // Once data has been processed (or a backed-up record is open), a new upload REPLACES the earlier
-  // files instead of being added to them — otherwise the old file keeps being counted and the
-  // result looks the same for every upload. To combine files, select them together.
-  const fresh = !p.multi || !!st.cacheSig || !!st.viewingId;
+  let fresh = !p.multi || !!st.viewingId || !st.files.length;
+  if (!fresh && st.cacheSig) {
+    // data was already processed: ask instead of silently adding or silently replacing
+    const combineDefault = p.id !== 'GRM';
+    const ch = await modal({ title: `${p.short}: new file(s) selected`, ok: 'Continue', html: `<p style="margin:0">${st.files.length} file(s) are already loaded: <b>${esc(st.files.map(f => f.name).join(', '))}</b></p>
+      <label class="chk"><input type="radio" name="afm" value="add" ${combineDefault ? 'checked' : ''}> <b>Add</b> the new file(s) to these — use when one day's export is split into several files</label>
+      <label class="chk"><input type="radio" name="afm" value="new" ${combineDefault ? '' : 'checked'}> <b>Start fresh</b> with only the new file(s) — use for a new day's export</label>`,
+      validate: m => $('input[name=afm]:checked', m).value });
+    if (!ch) return;
+    fresh = ch === 'new';
+  }
   const had = st.files.length;
   st.files = fresh ? (p.multi ? ok : [ok[0]]) : st.files.concat(ok.filter(f => !st.files.some(x => x.name === f.name && x.size === f.size && x.lastModified === f.lastModified)));
-  if (fresh) { st.cache = null; st.cacheSig = ''; st.current = null; st.viewingId = null; $('#res-' + p.id).innerHTML = ''; $('#extra-' + p.id).innerHTML = ''; renderHistory(p.id); }
+  st.cache = null; st.cacheSig = '';
+  if (fresh) { st.current = null; st.viewingId = null; $('#res-' + p.id).innerHTML = ''; $('#extra-' + p.id).innerHTML = ''; renderHistory(p.id); }
   const dateI = $('#date-' + p.id);
   if (!dateI.dataset.touched) { const g = st.files.map(f => dateFromName(f.name)).filter(Boolean).sort().pop(); dateI.value = g || isoToday(); }
-  renderFiles(p); setMsg(p, `${st.files.length} file(s) ready${fresh && had && p.multi ? ' (earlier files cleared — select several files together to combine them)' : ''} — press PROCESS DATA.`, 'info');
+  renderFiles(p); setMsg(p, `${st.files.length} file(s) ready${fresh && had && p.multi ? ' (earlier files cleared)' : ''} — press PROCESS DATA.`, 'info');
 }
 function renderFiles(p) {
   const st = PS[p.id];
@@ -2175,9 +2186,14 @@ function renderExtras(p) {
   if (!ex) { box.innerHTML = ''; return; }
   if (p.id === 'MRM') {
     const sts = Object.keys(ex.statusCounts).sort((a, b) => ex.statusCounts[b] - ex.statusCounts[a]);
-    box.innerHTML = `<div class="glass card corner" style="--pc:${p.color};margin-bottom:18px"><h3>Status → category mapping</h3><p class="tiny muted" style="margin-top:0">Auto-classified from the raw "Status" text. Correct any line — corrections are remembered on this computer for future uploads.</p>
-      <div class="tw" style="max-height:300px"><table class="dt"><thead><tr><th class="l">Raw status</th><th>Rows</th><th class="l">Category</th></tr></thead><tbody>${sts.map(s => `<tr><td class="l">${esc(s)}</td><td>${fmtN(ex.statusCounts[s])}</td><td class="l"><select data-st="${esc(s)}">${MRM_CATS.map(c => `<option${ex.map[s] === c ? ' selected' : ''}>${c}</option>`).join('')}</select></td></tr>`).join('')}</tbody></table></div></div>`;
+    const saved = Prefs.p.mrmMap || {}, nSaved = sts.filter(s => saved[s]).length;
+    const vrrRows = sts.filter(s => ex.map[s] === 'Victim Requests Remains').reduce((t, s) => t + ex.statusCounts[s], 0);
+    const files = (st.current && st.current.files) || [];
+    const warn = !vrrRows ? `<div class="warnbox" style="margin-bottom:10px"><b>No row is counted as "Victim Requests Remains".</b> Check: (1) all MRM files are loaded together — ${files.length} file(s) used: ${esc(files.join(', ') || '—')}; (2) the status that means "pending with victim" is set to <b>Victim Requests Remains</b> below${nSaved ? `; (3) ${nSaved} line(s) use a correction saved earlier on this computer — press <b>Reset saved corrections</b> if they are wrong` : ''}.</div>` : '';
+    box.innerHTML = `<div class="glass card corner" style="--pc:${p.color};margin-bottom:18px"><h3>Status → category mapping</h3>${warn}<p class="tiny muted" style="margin-top:0">Auto-classified from the raw "Status" text. Correct any line — corrections are remembered on this computer for future uploads.${nSaved ? ` <button class="btn sm ghost" id="mrmMapReset" style="margin-left:8px">Reset saved corrections (${nSaved})</button>` : ''}</p>
+      <div class="tw" style="max-height:300px"><table class="dt"><thead><tr><th class="l">Raw status</th><th>Rows</th><th class="l">Category</th><th class="l">Source</th></tr></thead><tbody>${sts.map(s => `<tr><td class="l">${esc(s)}</td><td>${fmtN(ex.statusCounts[s])}</td><td class="l"><select data-st="${esc(s)}">${MRM_CATS.map(c => `<option${ex.map[s] === c ? ' selected' : ''}>${c}</option>`).join('')}</select></td><td class="l tiny ${saved[s] ? '' : 'muted'}" style="${saved[s] ? 'color:var(--amber)' : ''}">${saved[s] ? 'saved correction' : 'automatic'}</td></tr>`).join('')}</tbody></table></div></div>`;
     $$('select[data-st]', box).forEach(s => s.onchange = () => { Prefs.p.mrmMap[s.dataset.st] = s.value; Prefs.save(); rebuild(p); });
+    const rb = $('#mrmMapReset', box); if (rb) rb.onclick = () => { Prefs.p.mrmMap = {}; Prefs.save(); rebuild(p); toast('Saved MRM corrections cleared — statuses re-classified automatically.', 'ok'); };
   } else if (p.id === 'GRM') {
     const r = ex.roles; const ks = Object.keys(r).sort((a, b) => r[b].n - r[a].n);
     const tot = ks.reduce((t, k) => t + r[k].n, 0), pn = ks.filter(k => r[k].c === 'pending').reduce((t, k) => t + r[k].n, 0);
