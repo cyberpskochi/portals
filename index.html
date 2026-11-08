@@ -3419,7 +3419,7 @@ function buildMX(kind, g) {
   const notes = ['Pending is the police-pending figure of each portal; for Sahayog it is the links not yet removed (total URLs - removed).'].concat(cols.map(c => `${c.label}: ${c.d.pml || c.d.pl}${c.date !== D.date ? ` (latest snapshot on/before ${dmy(D.date)} is ${dmy(c.date)})` : ''}`));
   const val = (r, c) => (r.r.c[c.id] || {}).v || 0;
   if (kind === 'pdf') {
-    const doc = newPdf(g.pdfPass, 'l'), W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight(), c0 = [200, 120, 0];
+    const doc = newPdf(g.pdfPass, 'p'), W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight(), c0 = [200, 120, 0];
     let y = pdfBand(doc, c0, 'DAILY PENDING MATRIX - STATION-WISE', `Date: ${dmy(D.date)}   |   Pending only - all portals`, ORG);
     y = pdfCards(doc, y, c0, [[fmtN(V.grand), 'Total pending'], [`${withP} / ${rows.length}`, 'Stations with pending'], [topR && topR.t > 0 ? topR.name.slice(0, 24) : '-', 'Highest pending' + (topR && topR.t > 0 ? ' (' + fmtN(topR.t) + ')' : '')], [mxSigned(V.grandD).replace('—', '-'), 'Change since previous snapshot']]);
     const head = [['#', 'Police Station'].concat(cols.map(c => c.label + (c.date !== D.date ? `\n(as on ${dmy(c.date)})` : '')), ['Total pending'])];
@@ -3428,9 +3428,9 @@ function buildMX(kind, g) {
     if (V.grandD !== null) body.push(['', 'CHANGE vs PREVIOUS'].concat(cols.map(c => c.prevDate ? mxSigned(c.total - c.prevTotal).replace('—', '-') : '-'), [mxSigned(V.grandD).replace('—', '-')]));
     const nR = rows.length, last = body.length - 1;
     doc.autoTable({
-      startY: y, theme: 'grid', margin: { left: 12, right: 12, bottom: 14 }, head, body,
-      styles: { fontSize: 7.6, cellPadding: 1.3, halign: 'center', valign: 'middle', lineColor: [215, 222, 230] },
-      headStyles: { fillColor: NAVY, textColor: 255, fontStyle: 'bold', fontSize: 7.2 }, columnStyles: { 0: { cellWidth: 8 }, 1: { halign: 'left', fontStyle: 'bold', cellWidth: 46 } },
+      startY: y, theme: 'grid', margin: { left: 12, right: 12, bottom: 14 }, tableWidth: W - 24, head, body,
+      styles: { fontSize: 7.4, cellPadding: 1.05, halign: 'center', valign: 'middle', lineColor: [215, 222, 230] },
+      headStyles: { fillColor: NAVY, textColor: 255, fontStyle: 'bold', fontSize: 6.6, cellPadding: 1.4 }, columnStyles: { 0: { cellWidth: 7 }, 1: { halign: 'left', fontStyle: 'bold', cellWidth: 40 } },
       didParseCell: dd => {
         if (dd.section === 'head') { const ci = dd.column.index - 2; if (ci >= 0 && ci < cols.length) dd.cell.styles.fillColor = cols[ci].p.print; return; }
         if (dd.section !== 'body') return; const ri = dd.row.index;
